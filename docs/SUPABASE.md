@@ -37,6 +37,8 @@ npx supabase db query --remote -f supabase/tests/contributions.test.sql
 # Expected: ERROR ... ALL_CONTRIBUTION_TESTS_PASSED (24 checks)
 npx supabase db query --remote -f supabase/tests/valuations.test.sql
 # Expected: ERROR ... ALL_VALUATION_TESTS_PASSED (23 checks)
+npx supabase db query --remote -f supabase/tests/nav.test.sql
+# Expected: ERROR ... ALL_NAV_TESTS_PASSED (19 checks)
 npx supabase db advisors --remote --type security
 ```
 

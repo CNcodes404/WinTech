@@ -20,6 +20,8 @@ import { ClientsPage } from '@/features/clients/pages/ClientsPage';
 import { ContributionDetailPage } from '@/features/contributions/pages/ContributionDetailPage';
 import { ContributionsPage } from '@/features/contributions/pages/ContributionsPage';
 import { CycleDetailPage } from '@/features/cycles/pages/CycleDetailPage';
+import { NavPage } from '@/features/nav/pages/NavPage';
+import { NavSnapshotPage } from '@/features/nav/pages/NavSnapshotPage';
 import { PortfolioPage } from '@/features/portfolio/pages/PortfolioPage';
 import { ValuationDetailPage } from '@/features/portfolio/pages/ValuationDetailPage';
 import { ValuationEditorPage } from '@/features/portfolio/pages/ValuationEditorPage';
@@ -31,6 +33,7 @@ const ADMIN_PAGES: Partial<Record<string, ReactElement>> = {
   cycles: <CyclesPage />,
   contributions: <ContributionsPage />,
   portfolio: <PortfolioPage />,
+  nav: <NavPage />,
 };
 
 /**
@@ -70,6 +73,7 @@ export const routes: RouteObject[] = [
               { path: 'portfolio/valuations/new', element: <ValuationEditorPage /> },
               { path: 'portfolio/valuations/:valuationId', element: <ValuationDetailPage /> },
               { path: 'portfolio/valuations/:valuationId/edit', element: <ValuationEditorPage /> },
+              { path: 'nav/snapshots/:snapshotId', element: <NavSnapshotPage /> },
               // Developer component showcase inside the real shell (removed from production builds).
               ...(import.meta.env.DEV ? [{ path: 'ui-kit', element: <UiKitPage /> }] : []),
               { path: '*', element: <NotFoundPage embedded /> },

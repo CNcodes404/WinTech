@@ -429,6 +429,141 @@ export type Database = {
           },
         ];
       };
+      nav_snapshots: {
+        Row: {
+          calculated_at: string;
+          calculation_version: string;
+          corrected_at: string | null;
+          corrected_by_snapshot_id: string | null;
+          corrects_snapshot_id: string | null;
+          created_at: string;
+          created_by: string;
+          cycle_id: string;
+          discarded_at: string | null;
+          gross_nav_per_unit: number;
+          gross_net_asset_value: number;
+          id: string;
+          nav_date: string;
+          net_nav_per_unit: number | null;
+          performance_fee_amount: number | null;
+          performance_fee_rate: number | null;
+          publish_reason: string | null;
+          published_at: string | null;
+          published_by: string | null;
+          status: Database['public']['Enums']['nav_snapshot_status'];
+          total_outstanding_units: number;
+          updated_at: string;
+          valuation_id: string;
+        };
+        Insert: {
+          calculated_at?: string;
+          calculation_version?: string;
+          corrected_at?: string | null;
+          corrected_by_snapshot_id?: string | null;
+          corrects_snapshot_id?: string | null;
+          created_at?: string;
+          created_by: string;
+          cycle_id: string;
+          discarded_at?: string | null;
+          gross_nav_per_unit: number;
+          gross_net_asset_value: number;
+          id?: string;
+          nav_date: string;
+          net_nav_per_unit?: number | null;
+          performance_fee_amount?: number | null;
+          performance_fee_rate?: number | null;
+          publish_reason?: string | null;
+          published_at?: string | null;
+          published_by?: string | null;
+          status?: Database['public']['Enums']['nav_snapshot_status'];
+          total_outstanding_units: number;
+          updated_at?: string;
+          valuation_id: string;
+        };
+        Update: {
+          calculated_at?: string;
+          calculation_version?: string;
+          corrected_at?: string | null;
+          corrected_by_snapshot_id?: string | null;
+          corrects_snapshot_id?: string | null;
+          created_at?: string;
+          created_by?: string;
+          cycle_id?: string;
+          discarded_at?: string | null;
+          gross_nav_per_unit?: number;
+          gross_net_asset_value?: number;
+          id?: string;
+          nav_date?: string;
+          net_nav_per_unit?: number | null;
+          performance_fee_amount?: number | null;
+          performance_fee_rate?: number | null;
+          publish_reason?: string | null;
+          published_at?: string | null;
+          published_by?: string | null;
+          status?: Database['public']['Enums']['nav_snapshot_status'];
+          total_outstanding_units?: number;
+          updated_at?: string;
+          valuation_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'nav_snapshots_corrected_by_snapshot_id_fkey';
+            columns: ['corrected_by_snapshot_id'];
+            isOneToOne: false;
+            referencedRelation: 'nav_snapshots';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'nav_snapshots_corrects_snapshot_id_fkey';
+            columns: ['corrects_snapshot_id'];
+            isOneToOne: false;
+            referencedRelation: 'nav_snapshots';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'nav_snapshots_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'nav_snapshots_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_overview';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'nav_snapshots_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_unit_summary';
+            referencedColumns: ['cycle_id'];
+          },
+          {
+            foreignKeyName: 'nav_snapshots_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'investment_cycles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'nav_snapshots_published_by_fkey';
+            columns: ['published_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'nav_snapshots_valuation_id_fkey';
+            columns: ['valuation_id'];
+            isOneToOne: false;
+            referencedRelation: 'portfolio_valuations';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       portfolio_valuation_items: {
         Row: {
           average_cost: number | null;
@@ -824,6 +959,10 @@ export type Database = {
         Args: { p_reason: string; p_valuation_id: string };
         Returns: undefined;
       };
+      admin_calculate_nav: {
+        Args: { p_corrects_snapshot_id?: string; p_valuation_id: string };
+        Returns: string;
+      };
       admin_cancel_fee_terms: {
         Args: { p_reason: string; p_terms_id: string };
         Returns: undefined;
@@ -839,6 +978,10 @@ export type Database = {
         };
         Returns: string;
       };
+      admin_discard_nav_draft: {
+        Args: { p_reason: string; p_snapshot_id: string };
+        Returns: undefined;
+      };
       admin_discard_valuation_draft: {
         Args: { p_reason: string; p_valuation_id: string };
         Returns: undefined;
@@ -851,6 +994,10 @@ export type Database = {
           fee_version: number;
           units: string;
         }[];
+      };
+      admin_publish_nav: {
+        Args: { p_reason: string; p_snapshot_id: string };
+        Returns: undefined;
       };
       admin_record_contribution: {
         Args: {
@@ -937,6 +1084,7 @@ export type Database = {
       contribution_method: 'upi' | 'bank_transfer' | 'cheque' | 'other';
       contribution_status: 'pending' | 'verified' | 'rejected' | 'reversed';
       cycle_status: 'draft' | 'open' | 'active' | 'closed' | 'settled';
+      nav_snapshot_status: 'draft' | 'published' | 'corrected' | 'discarded';
       profile_status: 'active' | 'inactive';
       valuation_status: 'draft' | 'approved' | 'superseded' | 'discarded';
     };
@@ -1064,6 +1212,7 @@ export const Constants = {
       contribution_method: ['upi', 'bank_transfer', 'cheque', 'other'],
       contribution_status: ['pending', 'verified', 'rejected', 'reversed'],
       cycle_status: ['draft', 'open', 'active', 'closed', 'settled'],
+      nav_snapshot_status: ['draft', 'published', 'corrected', 'discarded'],
       profile_status: ['active', 'inactive'],
       valuation_status: ['draft', 'approved', 'superseded', 'discarded'],
     },

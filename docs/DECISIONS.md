@@ -15,6 +15,28 @@ Approved by the product owner on 12 Nov 2026 (Module 0 plan review). All account
 | H   | **Module order.** Schema is introduced per feature module; Admin Overview moved after the NAV/fee modules so it uses real seeded data.                                                                                                                                                                         | Plan         |
 | I   | **Supabase environment.** Use the product owner's hosted Supabase project.                                                                                                                                                                                                                                     | Module 3     |
 
+## Module 9 engineering choices
+
+- **Gross NAV per unit = ROUND(net asset value ÷ outstanding units, 8)** (HALF_UP, dividend widened first).
+  Outstanding units = unit-ledger total with `created_at ≤ valuation_at`.
+- **NAV only from an approved valuation**; the snapshot stores the valuation id, units and net asset value used.
+- **Lifecycle:** draft → published (immutable) → corrected (only by a published correction for the same as-of
+  time); draft → discarded. One draft per cycle (recalculating replaces it). Never deleted.
+- **Decision E implemented:** a new NAV is refused if the unit ledger changed after the valuation time; the
+  admin records a newer valuation. Corrections re-value the same past time with the units as of then.
+- **Published NAVs move forward in time** per cycle (no back-dated publishing except corrections). NAV ≤ 0 and
+  zero outstanding units are refused.
+- **Decision B implemented:** `private.applicable_nav` = latest _published_ gross NAV with
+  `nav_date ≤ received_at`, else base NAV. Corrected snapshots are excluded for future issuance;
+  **units already issued are never rewritten.** Spec example verified in the DB: Amit ₹50,000 at published
+  ₹105 → 476.19047619 units.
+- **Known V1 limitation:** for a _correction_, units are counted by ledger time; a contribution received
+  before the valuation time but verified after it is not included in that past correction's units.
+- **Fee columns** (`performance_fee_amount`, `net_nav_per_unit`) exist but stay empty until Module 10.
+- **Charts:** Recharts, lazy-loaded with the NAV page (main bundle stays ~51 kB gzipped). Single series, no
+  legend, dashed base-NAV reference, hover tooltip with the exact decimal; the snapshot table is the
+  accessible alternative.
+
 ## Module 8 engineering choices
 
 - **Valuation lifecycle:** draft (editable) → approved (immutable snapshot) → superseded (only by an approved

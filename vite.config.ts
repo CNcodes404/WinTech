@@ -22,6 +22,7 @@ export default defineConfig({
             { name: 'vendor-data', test: /node_modules[\\/](@tanstack|decimal\.js)[\\/]/ },
             { name: 'vendor-supabase', test: /node_modules[\\/](@supabase)[\\/]/ },
             { name: 'vendor-forms', test: /node_modules[\\/](zod|react-hook-form|@hookform)[\\/]/ },
+            // Charting libraries are left to the lazy NavHistoryChart chunk (loaded only on the NAV page).
           ],
         },
       },
