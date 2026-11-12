@@ -16,6 +16,7 @@ const refresh = (qc: QueryClient) =>
     qc.invalidateQueries({ queryKey: navKeys.all }),
     qc.invalidateQueries({ queryKey: contributionKeys.all }),
     qc.invalidateQueries({ queryKey: auditKeys.all }),
+    qc.invalidateQueries({ queryKey: ['fees'] }),
   ]);
 
 export function useNavSnapshots(cycleId: string) {

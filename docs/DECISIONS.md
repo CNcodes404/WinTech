@@ -15,6 +15,25 @@ Approved by the product owner on 12 Nov 2026 (Module 0 plan review). All account
 | H   | **Module order.** Schema is introduced per feature module; Admin Overview moved after the NAV/fee modules so it uses real seeded data.                                                                                                                                                                         | Plan         |
 | I   | **Supabase environment.** Use the product owner's hosted Supabase project.                                                                                                                                                                                                                                     | Module 3     |
 
+## Module 10 — performance-fee model `per_lot_hwm_v1` (approved 12 Nov 2026, demo only)
+
+- **Per contribution lot, at each NAV snapshot:** eligible profit per unit = max(0, gross NAV − lot HWM);
+  fee = ROUND(units × eligible profit × lot fee rate, 2); gross value = ROUND(units × gross NAV, 2);
+  net value = gross value − fee; loss to recover = ROUND(units × max(0, HWM − gross NAV), 2).
+- **HWM = the lot's entry NAV for the whole cycle.** Fees are accrued (indicative), not charged, during a cycle,
+  so losses are always recovered before any fee and later entrants are never charged for earlier gains. Each
+  cycle starts fresh (no cross-cycle loss carry-forward, no annual reset).
+- **Lots included** = issued at or before the NAV's as-of time and not reversed by then; Σ lot units must equal
+  the snapshot's units (enforced).
+- **Snapshot totals:** fee = Σ lot fees; net NAV per unit = ROUND((net asset value − fee) ÷ units, 8), a
+  weighted average labelled as such. Computed automatically by trigger when a snapshot is created, frozen on
+  publish. Accruals are append-only for every role.
+- **Crystallisation (Decision D):** after a cycle is closed, the admin can record the final indicative fee once
+  (latest published NAV). Informational only — no money moves, nothing is deducted.
+- **No client-specific fee editing.** Fee rates come only from versioned cycle terms locked per lot.
+- Spec example verified in the DB: HWM ₹100 → gross ₹116 at 20% → fee ₹3,200 on 1,000 units, net ₹1,12,800,
+  net NAV ₹112.80.
+
 ## Module 9 engineering choices
 
 - **Gross NAV per unit = ROUND(net asset value ÷ outstanding units, 8)** (HALF_UP, dividend widened first).

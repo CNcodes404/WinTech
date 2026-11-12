@@ -20,6 +20,7 @@ import { ClientsPage } from '@/features/clients/pages/ClientsPage';
 import { ContributionDetailPage } from '@/features/contributions/pages/ContributionDetailPage';
 import { ContributionsPage } from '@/features/contributions/pages/ContributionsPage';
 import { CycleDetailPage } from '@/features/cycles/pages/CycleDetailPage';
+import { ProfitSharingPage } from '@/features/fees/pages/ProfitSharingPage';
 import { NavPage } from '@/features/nav/pages/NavPage';
 import { NavSnapshotPage } from '@/features/nav/pages/NavSnapshotPage';
 import { PortfolioPage } from '@/features/portfolio/pages/PortfolioPage';
@@ -34,6 +35,7 @@ const ADMIN_PAGES: Partial<Record<string, ReactElement>> = {
   contributions: <ContributionsPage />,
   portfolio: <PortfolioPage />,
   nav: <NavPage />,
+  'profit-sharing': <ProfitSharingPage />,
 };
 
 /**

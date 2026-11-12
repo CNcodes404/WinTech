@@ -379,6 +379,75 @@ export type Database = {
           },
         ];
       };
+      fee_crystallisations: {
+        Row: {
+          cycle_id: string;
+          id: string;
+          net_nav_per_unit: number;
+          note: string;
+          recorded_at: string;
+          recorded_by: string;
+          snapshot_id: string;
+          total_fee_amount: number;
+        };
+        Insert: {
+          cycle_id: string;
+          id?: string;
+          net_nav_per_unit: number;
+          note: string;
+          recorded_at?: string;
+          recorded_by: string;
+          snapshot_id: string;
+          total_fee_amount: number;
+        };
+        Update: {
+          cycle_id?: string;
+          id?: string;
+          net_nav_per_unit?: number;
+          note?: string;
+          recorded_at?: string;
+          recorded_by?: string;
+          snapshot_id?: string;
+          total_fee_amount?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'fee_crystallisations_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: true;
+            referencedRelation: 'cycle_overview';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fee_crystallisations_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: true;
+            referencedRelation: 'cycle_unit_summary';
+            referencedColumns: ['cycle_id'];
+          },
+          {
+            foreignKeyName: 'fee_crystallisations_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: true;
+            referencedRelation: 'investment_cycles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fee_crystallisations_recorded_by_fkey';
+            columns: ['recorded_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fee_crystallisations_snapshot_id_fkey';
+            columns: ['snapshot_id'];
+            isOneToOne: false;
+            referencedRelation: 'nav_snapshots';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       investment_cycles: {
         Row: {
           base_nav: number;
@@ -425,6 +494,116 @@ export type Database = {
             columns: ['created_by'];
             isOneToOne: false;
             referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      lot_fee_accruals: {
+        Row: {
+          client_id: string;
+          contribution_id: string;
+          created_at: string;
+          cycle_id: string;
+          eligible_profit_per_unit: number;
+          entry_nav: number;
+          fee_amount: number;
+          fee_rate: number;
+          gross_nav_per_unit: number;
+          gross_value: number;
+          id: string;
+          loss_to_recover: number;
+          method: string;
+          net_value: number;
+          reference_hwm: number;
+          snapshot_id: string;
+          units: number;
+        };
+        Insert: {
+          client_id: string;
+          contribution_id: string;
+          created_at?: string;
+          cycle_id: string;
+          eligible_profit_per_unit: number;
+          entry_nav: number;
+          fee_amount: number;
+          fee_rate: number;
+          gross_nav_per_unit: number;
+          gross_value: number;
+          id?: string;
+          loss_to_recover: number;
+          method?: string;
+          net_value: number;
+          reference_hwm: number;
+          snapshot_id: string;
+          units: number;
+        };
+        Update: {
+          client_id?: string;
+          contribution_id?: string;
+          created_at?: string;
+          cycle_id?: string;
+          eligible_profit_per_unit?: number;
+          entry_nav?: number;
+          fee_amount?: number;
+          fee_rate?: number;
+          gross_nav_per_unit?: number;
+          gross_value?: number;
+          id?: string;
+          loss_to_recover?: number;
+          method?: string;
+          net_value?: number;
+          reference_hwm?: number;
+          snapshot_id?: string;
+          units?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'lot_fee_accruals_client_id_fkey';
+            columns: ['client_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'lot_fee_accruals_contribution_id_fkey';
+            columns: ['contribution_id'];
+            isOneToOne: false;
+            referencedRelation: 'contribution_register';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'lot_fee_accruals_contribution_id_fkey';
+            columns: ['contribution_id'];
+            isOneToOne: false;
+            referencedRelation: 'contributions';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'lot_fee_accruals_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_overview';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'lot_fee_accruals_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_unit_summary';
+            referencedColumns: ['cycle_id'];
+          },
+          {
+            foreignKeyName: 'lot_fee_accruals_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'investment_cycles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'lot_fee_accruals_snapshot_id_fkey';
+            columns: ['snapshot_id'];
+            isOneToOne: false;
+            referencedRelation: 'nav_snapshots';
             referencedColumns: ['id'];
           },
         ];
@@ -944,6 +1123,81 @@ export type Database = {
         };
         Relationships: [];
       };
+      lot_fee_accrual_report: {
+        Row: {
+          client_email: string | null;
+          client_id: string | null;
+          client_name: string | null;
+          contributed_amount: number | null;
+          contribution_id: string | null;
+          cycle_id: string | null;
+          eligible_profit_per_unit: number | null;
+          entry_nav: number | null;
+          fee_amount: number | null;
+          fee_rate: number | null;
+          gross_nav_per_unit: number | null;
+          gross_value: number | null;
+          id: string | null;
+          loss_to_recover: number | null;
+          method: string | null;
+          net_value: number | null;
+          received_at: string | null;
+          reference_hwm: number | null;
+          snapshot_id: string | null;
+          units: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'lot_fee_accruals_client_id_fkey';
+            columns: ['client_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'lot_fee_accruals_contribution_id_fkey';
+            columns: ['contribution_id'];
+            isOneToOne: false;
+            referencedRelation: 'contribution_register';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'lot_fee_accruals_contribution_id_fkey';
+            columns: ['contribution_id'];
+            isOneToOne: false;
+            referencedRelation: 'contributions';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'lot_fee_accruals_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_overview';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'lot_fee_accruals_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_unit_summary';
+            referencedColumns: ['cycle_id'];
+          },
+          {
+            foreignKeyName: 'lot_fee_accruals_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'investment_cycles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'lot_fee_accruals_snapshot_id_fkey';
+            columns: ['snapshot_id'];
+            isOneToOne: false;
+            referencedRelation: 'nav_snapshots';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Functions: {
       admin_add_fee_terms: {
@@ -1009,6 +1263,10 @@ export type Database = {
           p_received_at: string;
           p_reference: string;
         };
+        Returns: string;
+      };
+      admin_record_fee_crystallisation: {
+        Args: { p_cycle_id: string; p_note: string };
         Returns: string;
       };
       admin_reject_contribution: {

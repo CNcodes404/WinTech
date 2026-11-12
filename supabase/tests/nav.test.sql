@@ -84,7 +84,8 @@ begin
   select * into v_s from public.nav_snapshots where id = s1;
   if v_s.gross_nav_per_unit <> 105 or v_s.total_outstanding_units <> 1000 or v_s.gross_net_asset_value <> 105000
      or v_s.status <> 'draft' or v_s.nav_date <> v_t1 or v_s.valuation_id <> v_val1
-     or v_s.net_nav_per_unit is not null then
+     -- Module 10 fee accrual: 1000 units × (105 − HWM 100) × 20% = ₹1,000 → net NAV (105000 − 1000) / 1000 = 104
+     or v_s.performance_fee_amount <> 1000 or v_s.net_nav_per_unit <> 104 then
     raise exception 'TEST FAILED: snapshot incorrect: %', row_to_json(v_s);
   end if;
   v_checks := v_checks + 1;

@@ -12,6 +12,7 @@ import { useToast } from '@/components/ui/toast-context';
 import { InfoTip } from '@/components/ui/Tooltip';
 import { EntityHistory } from '@/features/audit/EntityHistory';
 import { useCycle } from '@/features/cycles/queries';
+import { LotAccrualTable } from '@/features/fees/components/LotAccrualTable';
 import { useValuation } from '@/features/portfolio/queries';
 import { formatDateTime, formatINR, formatNav, formatUnits } from '@/lib/format';
 import { isUuid } from '@/lib/utils/uuid';
@@ -171,10 +172,26 @@ export function NavSnapshotPage() {
                   </dt>
                   <dd className="num font-semibold">{formatNav(s.gross_nav_per_unit, { decimals: 8 })}</dd>
                 </div>
+                {s.performance_fee_amount !== null && (
+                  <>
+                    <div className="flex justify-between gap-3 pt-2">
+                      <dt className="flex items-center gap-1 text-muted">
+                        − Indicative performance fee (all lots) <InfoTip term="performanceFee" />
+                      </dt>
+                      <dd className="num">{formatINR(s.performance_fee_amount)}</dd>
+                    </div>
+                    <div className="flex justify-between gap-3 border-t border-line pt-2">
+                      <dt className="flex items-center gap-1 font-medium">
+                        = Net NAV per unit (weighted average) <InfoTip term="netNav" />
+                      </dt>
+                      <dd className="num font-medium">{formatNav(s.net_nav_per_unit, { decimals: 8 })}</dd>
+                    </div>
+                  </>
+                )}
               </dl>
               <p className="mt-4 text-xs text-muted">
                 Units are those outstanding at the valuation time. NAV is rounded half-up to 8 decimals. The
-                performance fee and net NAV are added in the next module.{' '}
+                fee is accrued per contribution lot above its starting NAV (see the table below).{' '}
                 <Link
                   to={`/admin/portfolio/valuations/${s.valuation_id}`}
                   className="font-medium text-emerald-700 hover:underline"
@@ -184,6 +201,13 @@ export function NavSnapshotPage() {
                 .
               </p>
             </CardContent>
+          </Card>
+          <Card>
+            <CardHeader
+              title="Fee per contribution lot"
+              description="Indicative accrual at this NAV. Frozen once the NAV is published."
+            />
+            <LotAccrualTable snapshotId={s.id} />
           </Card>
         </div>
 

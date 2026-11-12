@@ -138,8 +138,12 @@ export function NavPage() {
               label="Net NAV per unit"
               term="netNav"
               loading={snapshots.isPending}
-              value="—"
-              meta="After performance fee (next module)"
+              value={latest?.net_nav_per_unit ? formatNav(latest.net_nav_per_unit) : '—'}
+              meta={
+                latest?.performance_fee_amount
+                  ? `After ${formatINR(latest.performance_fee_amount)} indicative fee (weighted average)`
+                  : 'After performance fee'
+              }
             />
           </section>
 
