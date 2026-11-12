@@ -11,6 +11,20 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  build: {
+    rolldownOptions: {
+      output: {
+        // Long-term cacheable vendor chunks; app code changes don't invalidate them.
+        codeSplitting: {
+          groups: [
+            { name: 'vendor-react', test: /node_modules[\\/](react|react-dom|react-router|scheduler)[\\/]/ },
+            { name: 'vendor-ui', test: /node_modules[\\/](@radix-ui|@floating-ui|lucide-react)[\\/]/ },
+            { name: 'vendor-data', test: /node_modules[\\/](@tanstack|decimal\.js)[\\/]/ },
+          ],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     strictPort: false,

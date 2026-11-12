@@ -55,14 +55,14 @@
   }
 
   body {
-    @apply bg-page text-ink font-sans antialiased;
+    @apply bg-page font-sans text-ink antialiased;
   }
 
   h1,
   h2,
   h3,
   h4 {
-    @apply text-ink font-semibold tracking-tight;
+    @apply font-semibold tracking-tight text-ink;
   }
 
   :focus-visible {

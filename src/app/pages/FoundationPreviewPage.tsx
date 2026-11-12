@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { ADMIN_NAV, CLIENT_NAV } from '@/app/routes';
+import { ADMIN_NAV, CLIENT_NAV } from '@/app/navigation';
 import { calculateUnitsIssued, previewPerformanceFee } from '@/lib/finance';
 import { formatINR, formatNav, formatRateAsPercent, formatUnits } from '@/lib/format';
 
@@ -35,12 +35,29 @@ export function FoundationPreviewPage() {
         <div>
           <p className="text-sm font-medium text-emerald-600">Module 1 · Foundation</p>
           <h1 className="mt-1 text-3xl">WinTech Investment Platform</h1>
-          <p className="text-muted mt-2 max-w-2xl">
+          <p className="mt-2 max-w-2xl text-muted">
             Design tokens, typography and decimal-safe financial formatting. This page is a developer preview
             and will be replaced by the sign-in screen.
           </p>
+          <div className="mt-4 flex flex-wrap gap-2 text-sm font-medium">
+            <Link className="text-emerald-600 hover:underline" to="/admin/overview">
+              Admin shell →
+            </Link>
+            <span className="text-line" aria-hidden="true">
+              |
+            </span>
+            <Link className="text-emerald-600 hover:underline" to="/client/overview">
+              Client shell →
+            </Link>
+            <span className="text-line" aria-hidden="true">
+              |
+            </span>
+            <Link className="text-emerald-600 hover:underline" to="/admin/ui-kit">
+              UI kit →
+            </Link>
+          </div>
         </div>
-        <span className="border-warning/30 bg-warning-soft text-warning inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-warning/30 bg-warning-soft px-3 py-1 text-xs font-semibold text-warning">
           <span aria-hidden="true">●</span> DEMO DATA
         </span>
       </header>
@@ -53,12 +70,12 @@ export function FoundationPreviewPage() {
           {SWATCHES.map((s) => (
             <li
               key={s.name}
-              className="border-line bg-surface overflow-hidden rounded-[var(--radius-card)] border shadow-[var(--shadow-card)]"
+              className="overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface shadow-[var(--shadow-card)]"
             >
-              <div className={`h-14 ${s.token} border-line border-b`} />
+              <div className={`h-14 ${s.token} border-b border-line`} />
               <div className="px-3 py-2">
                 <p className="text-sm font-medium">{s.name}</p>
-                <p className="num text-muted text-xs">{s.hex}</p>
+                <p className="num text-xs text-muted">{s.hex}</p>
               </div>
             </li>
           ))}
@@ -69,13 +86,13 @@ export function FoundationPreviewPage() {
         <h2 id="units" className="text-lg">
           Unit allocation example
         </h2>
-        <p className="text-muted mt-1 text-sm">
+        <p className="mt-1 text-sm text-muted">
           units = amount ÷ NAV, rounded <strong>down</strong> to 8 decimal places so units are never
           over-issued.
         </p>
-        <div className="border-line bg-surface mt-4 overflow-x-auto rounded-[var(--radius-card)] border shadow-[var(--shadow-card)]">
+        <div className="mt-4 overflow-x-auto rounded-[var(--radius-card)] border border-line bg-surface shadow-[var(--shadow-card)]">
           <table className="w-full min-w-[520px] text-sm">
-            <thead className="bg-surface-muted text-muted text-left text-xs font-semibold tracking-wide uppercase">
+            <thead className="bg-surface-muted text-left text-xs font-semibold tracking-wide text-muted uppercase">
               <tr>
                 <th scope="col" className="px-4 py-3">
                   Client
@@ -91,13 +108,13 @@ export function FoundationPreviewPage() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-line divide-y">
+            <tbody className="divide-y divide-line">
               {EXAMPLE_LOTS.map((lot) => (
                 <tr key={lot.client}>
                   <td className="px-4 py-3 font-medium">{lot.client}</td>
-                  <td className="num px-4 py-3 text-right">{formatINR(lot.amount)}</td>
-                  <td className="num px-4 py-3 text-right">{formatNav(lot.nav)}</td>
-                  <td className="num px-4 py-3 text-right">{formatUnits(lot.units)}</td>
+                  <td className="px-4 py-3 text-right num">{formatINR(lot.amount)}</td>
+                  <td className="px-4 py-3 text-right num">{formatNav(lot.nav)}</td>
+                  <td className="px-4 py-3 text-right num">{formatUnits(lot.units)}</td>
                 </tr>
               ))}
             </tbody>
@@ -121,18 +138,18 @@ export function FoundationPreviewPage() {
           ].map(([label, value]) => (
             <div
               key={label}
-              className="border-line bg-surface rounded-[var(--radius-card)] border p-4 shadow-[var(--shadow-card)]"
+              className="rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[var(--shadow-card)]"
             >
-              <dt className="text-muted text-xs font-medium">{label}</dt>
-              <dd className="num mt-1 text-xl font-semibold">{value}</dd>
+              <dt className="text-xs font-medium text-muted">{label}</dt>
+              <dd className="mt-1 num text-xl font-semibold">{value}</dd>
             </div>
           ))}
         </dl>
         <p className="mt-3 text-sm">
-          <span className="text-gain font-medium">▲ Gain</span>
-          <span className="text-line mx-2">|</span>
-          <span className="text-loss font-medium">▼ Loss</span>
-          <span className="text-muted ml-2">
+          <span className="font-medium text-gain">▲ Gain</span>
+          <span className="mx-2 text-line">|</span>
+          <span className="font-medium text-loss">▼ Loss</span>
+          <span className="ml-2 text-muted">
             — status is always paired with an icon or label, never colour alone.
           </span>
         </p>
@@ -148,7 +165,7 @@ export function FoundationPreviewPage() {
         ].map((group) => (
           <div
             key={group.label}
-            className="border-line bg-surface rounded-[var(--radius-card)] border p-4 shadow-[var(--shadow-card)]"
+            className="rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[var(--shadow-card)]"
           >
             <h3 className="text-sm">{group.label}</h3>
             <ul className="mt-3 flex flex-wrap gap-2">
@@ -156,7 +173,7 @@ export function FoundationPreviewPage() {
                 <li key={item.path}>
                   <Link
                     to={`${group.base}/${item.path}`}
-                    className="border-line text-navy-700 inline-block rounded-[var(--radius-control)] border px-2.5 py-1 text-xs font-medium hover:border-emerald-500 hover:text-emerald-700"
+                    className="inline-block rounded-[var(--radius-control)] border border-line px-2.5 py-1 text-xs font-medium text-navy-700 hover:border-emerald-500 hover:text-emerald-700"
                   >
                     {item.title}
                   </Link>
@@ -167,7 +184,7 @@ export function FoundationPreviewPage() {
         ))}
       </section>
 
-      <footer className="border-line text-muted mt-12 border-t pt-4 text-xs">
+      <footer className="mt-12 border-t border-line pt-4 text-xs text-muted">
         Prototype with fictional data only. Not a live payment, brokerage or investment service.
       </footer>
     </main>

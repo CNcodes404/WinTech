@@ -1,22 +1,40 @@
-import { Link } from 'react-router';
+import { Construction, Lock } from 'lucide-react';
+import type { NavItem } from '@/app/navigation';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { Card } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/States';
 
-interface PlaceholderPageProps {
-  title: string;
-  area: 'Admin' | 'Client' | 'Auth';
-}
+type PlaceholderPageProps = { item: NavItem } | { item?: undefined; title: string; description: string };
 
-/** Temporary page used until each module implements its real screen. */
-export function PlaceholderPage({ title, area }: PlaceholderPageProps) {
+/** Temporary screen used until each module implements its real page. */
+export function PlaceholderPage(props: PlaceholderPageProps) {
+  if (!props.item) {
+    return (
+      <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4">
+        <PageHeader title={props.title} description={props.description} />
+      </main>
+    );
+  }
+
+  const { item } = props;
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center px-4 py-12">
-      <p className="text-muted text-sm font-medium">{area}</p>
-      <h1 className="mt-1 text-2xl">{title}</h1>
-      <p className="text-muted mt-3">
-        This screen is a placeholder. It will be implemented in a later module.
-      </p>
-      <Link to="/" className="mt-6 text-sm font-medium text-emerald-600 hover:underline">
-        ← Back to foundation preview
-      </Link>
-    </main>
+    <>
+      <PageHeader title={item.title} description={item.description} />
+      <Card>
+        {item.disabled ? (
+          <EmptyState
+            icon={Lock}
+            title="Not available in V1"
+            description="Settlement and withdrawal processing is deferred until the policy and legal structure are approved."
+          />
+        ) : (
+          <EmptyState
+            icon={Construction}
+            title="Coming soon"
+            description={`This screen will be built in Module ${item.module}.`}
+          />
+        )}
+      </Card>
+    </>
   );
 }
