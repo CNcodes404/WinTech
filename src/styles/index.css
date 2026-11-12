@@ -1,0 +1,79 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+
+/*
+ * Light Premium Fintech design tokens (UI_UX_SPECIFICATION.md §1).
+ * Use semantic names in components (bg-surface, text-muted, text-gain) rather than raw hex values.
+ */
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Brand */
+  --color-navy-50: #eef2f7;
+  --color-navy-100: #d6dfeb;
+  --color-navy-200: #aebfd6;
+  --color-navy-300: #7f97b9;
+  --color-navy-500: #3b5579;
+  --color-navy-700: #1d3150;
+  --color-navy-800: #182a43;
+  --color-navy-900: #14243a; /* Primary navy */
+
+  --color-emerald-50: #e8f7f4;
+  --color-emerald-100: #c6ece4;
+  --color-emerald-500: #0f9d83; /* Emerald / primary action / gain */
+  --color-emerald-600: #0c8570;
+  --color-emerald-700: #0a6d5c;
+
+  /* Surfaces & text */
+  --color-page: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8fafc;
+  --color-ink: #172338; /* Main text */
+  --color-muted: #64748b; /* Secondary text */
+  --color-line: #e2e8f0; /* Borders */
+
+  /* Status (never conveyed by colour alone — pair with icon/label) */
+  --color-gain: #0f9d83;
+  --color-gain-soft: #e8f7f4;
+  --color-loss: #dc2626;
+  --color-loss-soft: #fdecec;
+  --color-warning: #d97706;
+  --color-warning-soft: #fdf3e6;
+  --color-info: #2563eb;
+  --color-info-soft: #eaf1fe;
+
+  /* Shape & depth */
+  --radius-card: 0.75rem;
+  --radius-control: 0.5rem;
+  --shadow-card: 0 1px 2px 0 rgb(20 36 58 / 0.04), 0 1px 3px 0 rgb(20 36 58 / 0.06);
+  --shadow-overlay: 0 10px 30px -10px rgb(20 36 58 / 0.25);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-page text-ink font-sans antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply text-ink font-semibold tracking-tight;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-emerald-500;
+  }
+}
+
+/* Financial figures: tabular, lining numerals so columns align. */
+@utility num {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings:
+    'tnum' 1,
+    'lnum' 1;
+}

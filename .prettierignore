@@ -1,0 +1,5 @@
+dist
+coverage
+node_modules
+package-lock.json
+investment_platform_claude_handoff
