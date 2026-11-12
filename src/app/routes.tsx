@@ -10,6 +10,7 @@ import { RootLayout } from '@/app/RootLayout';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { ClientLayout } from '@/components/layout/ClientLayout';
 import { AuthLayout } from '@/features/auth/components/AuthLayout';
+import { ChangePasswordRequiredPage } from '@/features/auth/pages/ChangePasswordRequiredPage';
 import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage';
@@ -24,6 +25,11 @@ import { ProfitSharingPage } from '@/features/fees/pages/ProfitSharingPage';
 import { NavPage } from '@/features/nav/pages/NavPage';
 import { AdminOverviewPage } from '@/features/overview/pages/AdminOverviewPage';
 import { NavSnapshotPage } from '@/features/nav/pages/NavSnapshotPage';
+import { ClientActivityPage } from '@/features/portal/pages/ClientActivityPage';
+import { ClientOverviewPage } from '@/features/portal/pages/ClientOverviewPage';
+import { ClientProfilePage } from '@/features/portal/pages/ClientProfilePage';
+import { MyInvestmentPage } from '@/features/portal/pages/MyInvestmentPage';
+import { StatementsPage } from '@/features/portal/pages/StatementsPage';
 import { PortfolioPage } from '@/features/portfolio/pages/PortfolioPage';
 import { ValuationDetailPage } from '@/features/portfolio/pages/ValuationDetailPage';
 import { ValuationEditorPage } from '@/features/portfolio/pages/ValuationEditorPage';
@@ -38,6 +44,15 @@ const ADMIN_PAGES: Partial<Record<string, ReactElement>> = {
   portfolio: <PortfolioPage />,
   nav: <NavPage />,
   'profit-sharing': <ProfitSharingPage />,
+};
+
+/** Client portal sections. */
+const CLIENT_PAGES: Partial<Record<string, ReactElement>> = {
+  overview: <ClientOverviewPage />,
+  investment: <MyInvestmentPage />,
+  activity: <ClientActivityPage />,
+  statements: <StatementsPage />,
+  profile: <ClientProfilePage />,
 };
 
 /**
@@ -57,6 +72,7 @@ export const routes: RouteObject[] = [
           { path: 'login', element: <LoginPage /> },
           { path: 'forgot-password', element: <ForgotPasswordPage /> },
           { path: 'reset-password', element: <ResetPasswordPage /> },
+          { path: 'change-password', element: <ChangePasswordRequiredPage /> },
         ],
       },
       {
@@ -93,7 +109,10 @@ export const routes: RouteObject[] = [
             element: <ClientLayout />,
             children: [
               { index: true, element: <Navigate to="overview" replace /> },
-              ...CLIENT_NAV.map((item) => ({ path: item.path, element: <PlaceholderPage item={item} /> })),
+              ...CLIENT_NAV.map((item) => ({
+                path: item.path,
+                element: CLIENT_PAGES[item.path] ?? <PlaceholderPage item={item} />,
+              })),
               { path: '*', element: <NotFoundPage embedded /> },
             ],
           },

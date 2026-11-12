@@ -15,6 +15,24 @@ Approved by the product owner on 12 Nov 2026 (Module 0 plan review). All account
 | H   | **Module order.** Schema is introduced per feature module; Admin Overview moved after the NAV/fee modules so it uses real seeded data.                                                                                                                                                                         | Plan         |
 | I   | **Supabase environment.** Use the product owner's hosted Supabase project.                                                                                                                                                                                                                                     | Module 3     |
 
+## Module 12 engineering choices (approved: "go with your recommendations")
+
+- **Client reads go only through `client_*` SECURITY DEFINER functions** that require an active client and
+  return only the caller's own rows and client-safe columns. Clients have no direct access to contributions,
+  ledger, valuations, holdings, NAV or fee tables (RLS stays admin-only). Postgres column privileges cannot
+  differ per user, so this is safer than client views.
+- **Never shown to clients:** admin notes, admin-written reasons (verify/reject/reverse), who verified, other
+  clients, portfolio holdings, the audit log.
+- **Client activity** is built from facts (contributions, unit issues, published NAVs), not the admin audit log.
+- **Clients may edit their own name and phone** (column grants + RLS; audited). Email is not editable.
+- **Forced password change:** accounts created by an admin get `must_change_password = true`; the app routes them
+  to "Set your own password" until done; `complete_password_change()` clears the flag for the caller only and
+  is audited. Usability guard (the server cannot verify the password actually changed).
+- **Statements:** printable page (Print → Save as PDF; app chrome hidden in print) and a CSV download of the
+  client's own records. CSV cells are protected against spreadsheet-formula injection.
+- **Client P/L** compares the lots valued at the latest NAV with their own contributed capital; money verified
+  after the latest NAV is flagged as "valued at the next NAV".
+
 ## Module 11 engineering choices
 
 - **Admin overview is per cycle** (defaults to the active/open cycle; selector in the URL).

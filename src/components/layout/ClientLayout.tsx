@@ -15,7 +15,7 @@ const BASE = '/client';
 export function ClientLayout() {
   const shellUser = useShellUser();
   return (
-    <div className="min-h-dvh pb-20 md:pb-0">
+    <div className="min-h-dvh pb-20 md:pb-0 print:pb-0">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[70] focus:rounded-md focus:bg-surface focus:px-3 focus:py-2 focus:text-sm"
@@ -23,7 +23,7 @@ export function ClientLayout() {
         Skip to content
       </a>
 
-      <header className="sticky top-0 z-20 border-b border-line bg-surface/95 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-line bg-surface/95 backdrop-blur print:hidden">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">
           <Link to={`${BASE}/overview`} aria-label="WinTech home">
             <BrandMark />
@@ -64,14 +64,14 @@ export function ClientLayout() {
         <Outlet />
       </main>
 
-      <footer className="mx-auto w-full max-w-6xl px-4 pb-6 sm:px-6">
+      <footer className="mx-auto w-full max-w-6xl px-4 pb-6 sm:px-6 print:hidden">
         <DemoNotice className="border-t border-line pt-4" />
       </footer>
 
       {/* Mobile bottom tab bar */}
       <nav
         aria-label="Client"
-        className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden print:hidden"
       >
         <ul className="grid grid-cols-5">
           {CLIENT_NAV.map((item) => {

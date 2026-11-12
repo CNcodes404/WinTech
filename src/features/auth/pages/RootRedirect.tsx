@@ -21,6 +21,7 @@ export function RootRedirect() {
     );
   }
   if (!auth.profile || auth.profile.status !== 'active') return <AccountUnavailable />;
+  if (auth.profile.must_change_password) return <Navigate to="/change-password" replace />;
   return <Navigate to={homePathFor(auth.profile.role)} replace />;
 }
 

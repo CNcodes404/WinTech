@@ -23,13 +23,19 @@ export async function requestPasswordReset(email: string) {
 export async function updatePassword(password: string) {
   const { error } = await supabase.auth.updateUser({ password });
   if (error) throw error;
+  // Clears the "must change temporary password" flag (no-op if not set). A failure here is not
+  // fatal: the password itself has already been changed.
+  await supabase.rpc('complete_password_change').then(
+    () => undefined,
+    () => undefined,
+  );
 }
 
 /** Reads the caller's own profile. RLS guarantees a client can never read anyone else's. */
 export async function fetchOwnProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, full_name, email, phone, role, status')
+    .select('id, full_name, email, phone, role, status, must_change_password')
     .eq('id', userId)
     .maybeSingle();
   if (error) throw error;

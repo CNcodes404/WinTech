@@ -921,6 +921,7 @@ export type Database = {
           email: string;
           full_name: string;
           id: string;
+          must_change_password: boolean;
           phone: string | null;
           role: Database['public']['Enums']['app_role'];
           status: Database['public']['Enums']['profile_status'];
@@ -931,6 +932,7 @@ export type Database = {
           email: string;
           full_name?: string;
           id: string;
+          must_change_password?: boolean;
           phone?: string | null;
           role?: Database['public']['Enums']['app_role'];
           status?: Database['public']['Enums']['profile_status'];
@@ -941,6 +943,7 @@ export type Database = {
           email?: string;
           full_name?: string;
           id?: string;
+          must_change_password?: boolean;
           phone?: string | null;
           role?: Database['public']['Enums']['app_role'];
           status?: Database['public']['Enums']['profile_status'];
@@ -1335,6 +1338,84 @@ export type Database = {
           units: string;
         }[];
       };
+      client_my_activity: {
+        Args: { p_limit?: number };
+        Returns: {
+          amount: string;
+          cycle_name: string;
+          kind: string;
+          nav: string;
+          occurred_at: string;
+          units: string;
+        }[];
+      };
+      client_my_contributions: {
+        Args: never;
+        Returns: {
+          amount: string;
+          applicable_nav: string;
+          cycle_id: string;
+          cycle_name: string;
+          id: string;
+          locked_fee_rate: string;
+          method: string;
+          received_at: string;
+          reference_number: string;
+          rejected_at: string;
+          reversed_at: string;
+          status: string;
+          units_issued: string;
+          verified_at: string;
+        }[];
+      };
+      client_my_cycles: {
+        Args: never;
+        Returns: {
+          base_nav: string;
+          current_fee_rate: string;
+          cycle_id: string;
+          cycle_name: string;
+          cycle_status: string;
+          end_date: string;
+          fee_amount: string;
+          gross_value: string;
+          latest_gross_nav: string;
+          latest_nav_date: string;
+          loss_to_recover: string;
+          lots_contributed: string;
+          net_contributed: string;
+          net_value: string;
+          start_date: string;
+          units: string;
+        }[];
+      };
+      client_my_lot_values: {
+        Args: { p_cycle_id: string };
+        Returns: {
+          amount: string;
+          contribution_id: string;
+          eligible_profit_per_unit: string;
+          entry_nav: string;
+          fee_amount: string;
+          fee_rate: string;
+          gross_nav_per_unit: string;
+          gross_value: string;
+          loss_to_recover: string;
+          nav_date: string;
+          net_value: string;
+          received_at: string;
+          reference_hwm: string;
+          units: string;
+        }[];
+      };
+      client_nav_history: {
+        Args: { p_cycle_id: string };
+        Returns: {
+          gross_nav_per_unit: string;
+          nav_date: string;
+        }[];
+      };
+      complete_password_change: { Args: never; Returns: undefined };
     };
     Enums: {
       allocation_entry_type: 'issue' | 'reversal';
