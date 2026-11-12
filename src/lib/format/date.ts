@@ -30,6 +30,23 @@ export function isoDateInIST(at: Date = new Date()): string {
   return isoDateFmt.format(at);
 }
 
+const isoTimeFmt = new Intl.DateTimeFormat('en-GB', {
+  timeZone: APP_TIME_ZONE,
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+});
+
+/** "YYYY-MM-DDTHH:mm" in IST, the value format of <input type="datetime-local">. */
+export function isoDateTimeLocalInIST(at: Date = new Date()): string {
+  return `${isoDateFmt.format(at)}T${isoTimeFmt.format(at)}`;
+}
+
+/** Interpret a datetime-local value ("YYYY-MM-DDTHH:mm") as IST and return an ISO timestamp. */
+export function dateTimeLocalISTToIso(value: string): string {
+  return `${value}:00+05:30`;
+}
+
 /** Add whole days to a YYYY-MM-DD date string. */
 export function addDaysIso(isoDate: string, days: number): string {
   const d = new Date(`${isoDate}T00:00:00Z`);

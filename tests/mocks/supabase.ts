@@ -167,6 +167,12 @@ export function mockSignInSucceeds(profile: Profile) {
 }
 
 export function resetSupabaseMock() {
+  // clearAllMocks keeps implementations; restore defaults so stubs never leak between tests.
+  supabaseMock.rpc.mockReset();
+  supabaseMock.rpc.mockImplementation(async () => ({ data: null, error: null }));
+  supabaseMock.functions.invoke.mockReset();
+  supabaseMock.functions.invoke.mockImplementation(async () => ({ data: null, error: null }));
+  supabaseMock.auth.signInWithPassword.mockReset();
   mockSignedOut();
   listeners.clear();
   queryHandlers.length = 0;

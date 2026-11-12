@@ -15,6 +15,28 @@ Approved by the product owner on 12 Nov 2026 (Module 0 plan review). All account
 | H   | **Module order.** Schema is introduced per feature module; Admin Overview moved after the NAV/fee modules so it uses real seeded data.                                                                                                                                                                         | Plan         |
 | I   | **Supabase environment.** Use the product owner's hosted Supabase project.                                                                                                                                                                                                                                     | Module 3     |
 
+## Module 7 engineering choices (approved: "go with your proposals")
+
+- **Contributions are accepted only while a cycle is open or active**; verification and reversal likewise.
+- **Applicable NAV = cycle base NAV until NAV publishing exists (Module 9).** Isolated in
+  `private.applicable_nav(cycle, received_at)`; Module 9 changes only that function to "latest published gross
+  NAV as of received_at, else base NAV" (Decision B).
+- **Units = TRUNC(amount ÷ NAV, 8)**, computed in Postgres after widening the dividend to scale 20.
+  Invariant tested: units × entry NAV ≤ amount.
+- **Unit ledger is append-only** (`client_unit_allocations`): one `issue` row per verified contribution (unique),
+  at most one `reversal` row with exactly the negated units. Outstanding units = SUM(units). No updates/deletes
+  for any role.
+- **Each lot locks** entry NAV, reference HWM (= entry NAV), loss carry-forward (0) and the fee rate/version in
+  force at the verification instant (`clock_timestamp()`).
+- **Verify, reject and reverse all need a written reason** (audit). Verification shows the server's own preview
+  (`admin_preview_verification`) so the admin confirms authoritative numbers.
+- **Duplicate guard:** the same method + payment reference cannot be live (pending/verified) twice.
+- **Recorded facts are immutable** (amount, date, method, reference, client, cycle); mistakes are fixed by
+  rejecting (pending) or reversing (verified) and recording again.
+- **Inactive clients:** new contributions and verification are blocked until reactivated.
+- **Proof attachments deferred**; `proof_storage_path` column reserved. Admin notes are never exposed to clients
+  (client views in Module 12 will exclude them).
+
 ## Module 6 engineering choices
 
 - **Fee terms are versioned and append-only** (`cycle_fee_terms`). Version 1 is created with the cycle and is

@@ -12,6 +12,7 @@ import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table';
 import { useToast } from '@/components/ui/toast-context';
 import { InfoTip } from '@/components/ui/Tooltip';
 import { EntityHistory } from '@/features/audit/EntityHistory';
+import { CycleUnitStats } from '@/features/contributions/components/CycleUnitStats';
 import { formatDate, formatDateTime, formatNav, formatRateAsPercent } from '@/lib/format';
 import { isUuid } from '@/lib/utils/uuid';
 import { ChangeFeeDialog } from '../components/ChangeFeeDialog';
@@ -184,6 +185,7 @@ export function CycleDetailPage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
+          <CycleUnitStats cycleId={cycle.id} />
           <Card>
             <CardHeader title="Summary" />
             <CardContent>

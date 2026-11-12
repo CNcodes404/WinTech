@@ -55,6 +55,249 @@ export type Database = {
           },
         ];
       };
+      client_unit_allocations: {
+        Row: {
+          amount: number;
+          client_id: string;
+          contribution_id: string;
+          created_at: string;
+          created_by: string;
+          cycle_id: string;
+          entry_nav: number;
+          entry_type: Database['public']['Enums']['allocation_entry_type'];
+          fee_rate: number;
+          fee_terms_id: string;
+          id: string;
+          loss_carry_forward: number;
+          reference_hwm: number;
+          units: number;
+        };
+        Insert: {
+          amount: number;
+          client_id: string;
+          contribution_id: string;
+          created_at?: string;
+          created_by: string;
+          cycle_id: string;
+          entry_nav: number;
+          entry_type: Database['public']['Enums']['allocation_entry_type'];
+          fee_rate: number;
+          fee_terms_id: string;
+          id?: string;
+          loss_carry_forward?: number;
+          reference_hwm: number;
+          units: number;
+        };
+        Update: {
+          amount?: number;
+          client_id?: string;
+          contribution_id?: string;
+          created_at?: string;
+          created_by?: string;
+          cycle_id?: string;
+          entry_nav?: number;
+          entry_type?: Database['public']['Enums']['allocation_entry_type'];
+          fee_rate?: number;
+          fee_terms_id?: string;
+          id?: string;
+          loss_carry_forward?: number;
+          reference_hwm?: number;
+          units?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'client_unit_allocations_client_id_fkey';
+            columns: ['client_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'client_unit_allocations_contribution_id_fkey';
+            columns: ['contribution_id'];
+            isOneToOne: false;
+            referencedRelation: 'contribution_register';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'client_unit_allocations_contribution_id_fkey';
+            columns: ['contribution_id'];
+            isOneToOne: false;
+            referencedRelation: 'contributions';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'client_unit_allocations_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'client_unit_allocations_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_overview';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'client_unit_allocations_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_unit_summary';
+            referencedColumns: ['cycle_id'];
+          },
+          {
+            foreignKeyName: 'client_unit_allocations_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'investment_cycles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'client_unit_allocations_fee_terms_id_fkey';
+            columns: ['fee_terms_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_fee_terms';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      contributions: {
+        Row: {
+          amount: number;
+          applicable_nav: number | null;
+          client_id: string;
+          created_at: string;
+          cycle_id: string;
+          id: string;
+          method: Database['public']['Enums']['contribution_method'];
+          notes: string | null;
+          proof_storage_path: string | null;
+          received_at: string;
+          recorded_by: string;
+          reference_number: string | null;
+          rejected_at: string | null;
+          rejected_by: string | null;
+          rejection_reason: string | null;
+          reversal_reason: string | null;
+          reversed_at: string | null;
+          reversed_by: string | null;
+          status: Database['public']['Enums']['contribution_status'];
+          units_issued: number | null;
+          updated_at: string;
+          verified_at: string | null;
+          verified_by: string | null;
+        };
+        Insert: {
+          amount: number;
+          applicable_nav?: number | null;
+          client_id: string;
+          created_at?: string;
+          cycle_id: string;
+          id?: string;
+          method: Database['public']['Enums']['contribution_method'];
+          notes?: string | null;
+          proof_storage_path?: string | null;
+          received_at: string;
+          recorded_by: string;
+          reference_number?: string | null;
+          rejected_at?: string | null;
+          rejected_by?: string | null;
+          rejection_reason?: string | null;
+          reversal_reason?: string | null;
+          reversed_at?: string | null;
+          reversed_by?: string | null;
+          status?: Database['public']['Enums']['contribution_status'];
+          units_issued?: number | null;
+          updated_at?: string;
+          verified_at?: string | null;
+          verified_by?: string | null;
+        };
+        Update: {
+          amount?: number;
+          applicable_nav?: number | null;
+          client_id?: string;
+          created_at?: string;
+          cycle_id?: string;
+          id?: string;
+          method?: Database['public']['Enums']['contribution_method'];
+          notes?: string | null;
+          proof_storage_path?: string | null;
+          received_at?: string;
+          recorded_by?: string;
+          reference_number?: string | null;
+          rejected_at?: string | null;
+          rejected_by?: string | null;
+          rejection_reason?: string | null;
+          reversal_reason?: string | null;
+          reversed_at?: string | null;
+          reversed_by?: string | null;
+          status?: Database['public']['Enums']['contribution_status'];
+          units_issued?: number | null;
+          updated_at?: string;
+          verified_at?: string | null;
+          verified_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'contributions_client_id_fkey';
+            columns: ['client_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'contributions_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_overview';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'contributions_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_unit_summary';
+            referencedColumns: ['cycle_id'];
+          },
+          {
+            foreignKeyName: 'contributions_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'investment_cycles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'contributions_recorded_by_fkey';
+            columns: ['recorded_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'contributions_rejected_by_fkey';
+            columns: ['rejected_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'contributions_reversed_by_fkey';
+            columns: ['reversed_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'contributions_verified_by_fkey';
+            columns: ['verified_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       cycle_fee_terms: {
         Row: {
           cancel_reason: string | null;
@@ -119,6 +362,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: 'cycle_overview';
             referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'cycle_fee_terms_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_unit_summary';
+            referencedColumns: ['cycle_id'];
           },
           {
             foreignKeyName: 'cycle_fee_terms_cycle_id_fkey';
@@ -214,6 +464,122 @@ export type Database = {
       };
     };
     Views: {
+      client_cycle_holdings: {
+        Row: {
+          client_id: string | null;
+          cycle_id: string | null;
+          cycle_name: string | null;
+          cycle_status: Database['public']['Enums']['cycle_status'] | null;
+          lots_issued: number | null;
+          lots_reversed: number | null;
+          net_contributed: number | null;
+          units: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'client_unit_allocations_client_id_fkey';
+            columns: ['client_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'client_unit_allocations_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_overview';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'client_unit_allocations_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_unit_summary';
+            referencedColumns: ['cycle_id'];
+          },
+          {
+            foreignKeyName: 'client_unit_allocations_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'investment_cycles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      contribution_register: {
+        Row: {
+          amount: number | null;
+          applicable_nav: number | null;
+          client_email: string | null;
+          client_id: string | null;
+          client_name: string | null;
+          created_at: string | null;
+          cycle_id: string | null;
+          cycle_name: string | null;
+          cycle_status: Database['public']['Enums']['cycle_status'] | null;
+          id: string | null;
+          locked_fee_rate: number | null;
+          method: Database['public']['Enums']['contribution_method'] | null;
+          notes: string | null;
+          received_at: string | null;
+          recorded_by: string | null;
+          reference_hwm: number | null;
+          reference_number: string | null;
+          rejected_at: string | null;
+          rejection_reason: string | null;
+          reversal_reason: string | null;
+          reversed_at: string | null;
+          status: Database['public']['Enums']['contribution_status'] | null;
+          units_issued: number | null;
+          updated_at: string | null;
+          verified_at: string | null;
+          verified_by: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'contributions_client_id_fkey';
+            columns: ['client_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'contributions_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_overview';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'contributions_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_unit_summary';
+            referencedColumns: ['cycle_id'];
+          },
+          {
+            foreignKeyName: 'contributions_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'investment_cycles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'contributions_recorded_by_fkey';
+            columns: ['recorded_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'contributions_verified_by_fkey';
+            columns: ['verified_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       cycle_overview: {
         Row: {
           base_nav: number | null;
@@ -244,6 +610,33 @@ export type Database = {
           },
         ];
       };
+      cycle_unit_summary: {
+        Row: {
+          cycle_id: string | null;
+          investor_count: number | null;
+          net_contributed: number | null;
+          outstanding_units: number | null;
+          pending_amount: number | null;
+          pending_count: number | null;
+        };
+        Insert: {
+          cycle_id?: string | null;
+          investor_count?: never;
+          net_contributed?: never;
+          outstanding_units?: never;
+          pending_amount?: never;
+          pending_count?: never;
+        };
+        Update: {
+          cycle_id?: string | null;
+          investor_count?: never;
+          net_contributed?: never;
+          outstanding_units?: never;
+          pending_amount?: never;
+          pending_count?: never;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       admin_add_fee_terms: {
@@ -269,6 +662,35 @@ export type Database = {
           p_start_date: string;
         };
         Returns: string;
+      };
+      admin_preview_verification: {
+        Args: { p_contribution_id: string };
+        Returns: {
+          applicable_nav: string;
+          fee_rate: string;
+          fee_version: number;
+          units: string;
+        }[];
+      };
+      admin_record_contribution: {
+        Args: {
+          p_amount: number;
+          p_client_id: string;
+          p_cycle_id: string;
+          p_method: Database['public']['Enums']['contribution_method'];
+          p_notes: string;
+          p_received_at: string;
+          p_reference: string;
+        };
+        Returns: string;
+      };
+      admin_reject_contribution: {
+        Args: { p_contribution_id: string; p_reason: string };
+        Returns: undefined;
+      };
+      admin_reverse_contribution: {
+        Args: { p_contribution_id: string; p_reason: string };
+        Returns: undefined;
       };
       admin_set_cycle_status: {
         Args: {
@@ -306,9 +728,20 @@ export type Database = {
         };
         Returns: undefined;
       };
+      admin_verify_contribution: {
+        Args: { p_contribution_id: string; p_reason: string };
+        Returns: {
+          applicable_nav: string;
+          fee_rate: string;
+          units: string;
+        }[];
+      };
     };
     Enums: {
+      allocation_entry_type: 'issue' | 'reversal';
       app_role: 'admin' | 'client';
+      contribution_method: 'upi' | 'bank_transfer' | 'cheque' | 'other';
+      contribution_status: 'pending' | 'verified' | 'rejected' | 'reversed';
       cycle_status: 'draft' | 'open' | 'active' | 'closed' | 'settled';
       profile_status: 'active' | 'inactive';
     };
@@ -431,7 +864,10 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      allocation_entry_type: ['issue', 'reversal'],
       app_role: ['admin', 'client'],
+      contribution_method: ['upi', 'bank_transfer', 'cheque', 'other'],
+      contribution_status: ['pending', 'verified', 'rejected', 'reversed'],
       cycle_status: ['draft', 'open', 'active', 'closed', 'settled'],
       profile_status: ['active', 'inactive'],
     },

@@ -1,5 +1,7 @@
 import type { ClientListParams, ClientSort, ClientStatusFilter, SortDir } from './types';
 
+export { sanitizeSearch } from '@/lib/supabase/search';
+
 export const DEFAULT_LIST_PARAMS: ClientListParams = {
   q: '',
   status: 'all',
@@ -7,18 +9,6 @@ export const DEFAULT_LIST_PARAMS: ClientListParams = {
   dir: 'asc',
   page: 1,
 };
-
-/**
- * Make free text safe to embed in a PostgREST `or=(…)` filter: drop characters with syntactic
- * meaning there (, ( ) " \ * % :) and limit the length. The value is also double-quoted by the caller.
- */
-export function sanitizeSearch(raw: string): string {
-  return raw
-    .replace(/[,()"\\*%:]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 100);
-}
 
 export function parseListParams(sp: URLSearchParams): ClientListParams {
   const status = sp.get('status');

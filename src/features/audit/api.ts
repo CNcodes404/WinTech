@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase/client';
 import type { Json } from '@/lib/supabase/database.types';
 
 /** Admin-only (RLS): history of one entity from the append-only audit log. */
-export type AuditEntityType = 'profile' | 'cycle';
+export type AuditEntityType = 'profile' | 'cycle' | 'contribution';
 
 export interface AuditEntry {
   id: string;

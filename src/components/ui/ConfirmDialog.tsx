@@ -25,6 +25,8 @@ export interface ConfirmDialogProps {
    */
   onConfirm: (reason: string) => Promise<void> | void;
   errorMessage?: string;
+  /** Disable confirming (e.g. while a server preview is loading or failed). */
+  confirmDisabled?: boolean;
 }
 
 /**
@@ -44,6 +46,7 @@ export function ConfirmDialog({
   minReasonLength = 5,
   onConfirm,
   errorMessage = 'The action could not be completed. Nothing was changed. Please try again.',
+  confirmDisabled = false,
 }: ConfirmDialogProps) {
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -69,7 +72,7 @@ export function ConfirmDialog({
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setTouched(true);
-    if (reasonError || submitting) return;
+    if (reasonError || submitting || confirmDisabled) return;
     setSubmitting(true);
     setFailure(null);
     try {
@@ -101,7 +104,7 @@ export function ConfirmDialog({
           <Button variant="secondary" onClick={() => handleOpenChange(false)} disabled={submitting}>
             Cancel
           </Button>
-          <Button type="submit" form={formId} variant={tone} loading={submitting}>
+          <Button type="submit" form={formId} variant={tone} loading={submitting} disabled={confirmDisabled}>
             {confirmLabel}
           </Button>
         </>

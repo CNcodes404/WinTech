@@ -1,4 +1,5 @@
-import { ChevronLeft, HandCoins, Pencil, UserCheck, UserX } from 'lucide-react';
+import { ChevronLeft, Pencil, UserCheck, UserX } from 'lucide-react';
+import { ClientInvestmentPanel } from '@/features/contributions/components/ClientInvestmentPanel';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -124,14 +125,7 @@ export function ClientDetailPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader title="Investment" description="Contributions, unit allocations and statements." />
-            <EmptyState
-              icon={HandCoins}
-              title="No contributions yet"
-              description="Contributions, issued units and statements will appear here once contribution recording is available."
-            />
-          </Card>
+          <ClientInvestmentPanel clientId={client.id} clientActive={client.status === 'active'} />
         </div>
 
         <Card className="h-fit">

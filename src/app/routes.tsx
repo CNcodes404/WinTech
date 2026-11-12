@@ -17,6 +17,8 @@ import { RootRedirect } from '@/features/auth/pages/RootRedirect';
 import { RequireRole } from '@/features/auth/RequireRole';
 import { ClientDetailPage } from '@/features/clients/pages/ClientDetailPage';
 import { ClientsPage } from '@/features/clients/pages/ClientsPage';
+import { ContributionDetailPage } from '@/features/contributions/pages/ContributionDetailPage';
+import { ContributionsPage } from '@/features/contributions/pages/ContributionsPage';
 import { CycleDetailPage } from '@/features/cycles/pages/CycleDetailPage';
 import { CyclesPage } from '@/features/cycles/pages/CyclesPage';
 
@@ -24,6 +26,7 @@ import { CyclesPage } from '@/features/cycles/pages/CyclesPage';
 const ADMIN_PAGES: Partial<Record<string, ReactElement>> = {
   clients: <ClientsPage />,
   cycles: <CyclesPage />,
+  contributions: <ContributionsPage />,
 };
 
 /**
@@ -59,6 +62,7 @@ export const routes: RouteObject[] = [
               })),
               { path: 'clients/:clientId', element: <ClientDetailPage /> },
               { path: 'cycles/:cycleId', element: <CycleDetailPage /> },
+              { path: 'contributions/:contributionId', element: <ContributionDetailPage /> },
               // Developer component showcase inside the real shell (removed from production builds).
               ...(import.meta.env.DEV ? [{ path: 'ui-kit', element: <UiKitPage /> }] : []),
               { path: '*', element: <NotFoundPage embedded /> },
