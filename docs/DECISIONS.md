@@ -15,6 +15,17 @@ Approved by the product owner on 12 Nov 2026 (Module 0 plan review). All account
 | H   | **Module order.** Schema is introduced per feature module; Admin Overview moved after the NAV/fee modules so it uses real seeded data.                                                                                                                                                                         | Plan         |
 | I   | **Supabase environment.** Use the product owner's hosted Supabase project.                                                                                                                                                                                                                                     | Module 3     |
 
+## Module 5 engineering choices
+
+- **Client list** is server-side filtered, sorted and paginated (20 per page); state lives in the URL so views
+  are shareable and survive refresh. Search text is sanitised before it is embedded in the PostgREST filter.
+- **Contributed amount / units / indicative value** columns are deferred until contributions and NAV exist
+  (Modules 7–9) rather than shown as placeholders.
+- **Email (sign-in identity) is not editable** in V1. Name and phone are editable by admins (audited by trigger).
+- **Activate / deactivate** requires a written reason and goes through `admin_set_user_status` (audited).
+- **Temporary passwords** are generated in the browser with `crypto.getRandomValues` (14 chars, unambiguous
+  alphabet), shown once after creation, and never stored by the app.
+
 ## Module 4 engineering choices
 
 - **Audit log is append-only** — UPDATE/DELETE/TRUNCATE are blocked by triggers for every role, API users

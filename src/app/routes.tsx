@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import { Navigate, type RouteObject } from 'react-router';
 import { ADMIN_NAV, CLIENT_NAV } from '@/app/navigation';
 import { FoundationPreviewPage } from '@/app/pages/FoundationPreviewPage';
@@ -14,6 +15,13 @@ import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage';
 import { RootRedirect } from '@/features/auth/pages/RootRedirect';
 import { RequireRole } from '@/features/auth/RequireRole';
+import { ClientDetailPage } from '@/features/clients/pages/ClientDetailPage';
+import { ClientsPage } from '@/features/clients/pages/ClientsPage';
+
+/** Admin sections that have a real screen; the rest render a placeholder until their module. */
+const ADMIN_PAGES: Partial<Record<string, ReactElement>> = {
+  clients: <ClientsPage />,
+};
 
 /**
  * Route map. /admin requires an active admin, /client an active client. Frontend guards are a UX
@@ -42,7 +50,11 @@ export const routes: RouteObject[] = [
             element: <AdminLayout />,
             children: [
               { index: true, element: <Navigate to="overview" replace /> },
-              ...ADMIN_NAV.map((item) => ({ path: item.path, element: <PlaceholderPage item={item} /> })),
+              ...ADMIN_NAV.map((item) => ({
+                path: item.path,
+                element: ADMIN_PAGES[item.path] ?? <PlaceholderPage item={item} />,
+              })),
+              { path: 'clients/:clientId', element: <ClientDetailPage /> },
               // Developer component showcase inside the real shell (removed from production builds).
               ...(import.meta.env.DEV ? [{ path: 'ui-kit', element: <UiKitPage /> }] : []),
               { path: '*', element: <NotFoundPage embedded /> },

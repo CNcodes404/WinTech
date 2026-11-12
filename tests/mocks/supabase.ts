@@ -68,16 +68,72 @@ export const supabaseMock = {
         },
     ),
   },
-  from: vi.fn((table: string) => {
-    if (table !== 'profiles') throw new Error(`Unexpected table in test: ${table}`);
-    const builder = {
-      select: () => builder,
-      eq: () => builder,
-      maybeSingle: async () => ({ data: mockDb.profile, error: null }),
-    };
-    return builder;
-  }),
+  from: vi.fn((table: string) => queryBuilder(table)),
 };
+
+// ------------------------------------------------------------------------------------------------
+// Chainable query-builder double. Every call (select/eq/or/order/range/update/…) is recorded; the
+// result comes from handlers registered with `mockQuery`, newest first. Unhandled queries resolve
+// to an empty result, except the auth profile lookup which returns the signed-in profile.
+// ------------------------------------------------------------------------------------------------
+export interface QueryOp {
+  method: string;
+  args: unknown[];
+}
+export interface QueryResult {
+  data: unknown;
+  error: { code?: string; message?: string } | null;
+  count?: number | null;
+}
+type QueryHandler = (table: string, ops: QueryOp[]) => QueryResult | undefined;
+
+const queryHandlers: QueryHandler[] = [];
+/** Every query executed during the test, for assertions. */
+export const executedQueries: Array<{ table: string; ops: QueryOp[] }> = [];
+
+export function mockQuery(handler: QueryHandler) {
+  queryHandlers.unshift(handler);
+}
+
+export const hasOp = (ops: QueryOp[], method: string) => ops.some((o) => o.method === method);
+export const opArgs = (ops: QueryOp[], method: string) => ops.find((o) => o.method === method)?.args;
+
+function resolveQuery(table: string, ops: QueryOp[]): QueryResult {
+  executedQueries.push({ table, ops });
+  for (const h of queryHandlers) {
+    const r = h(table, ops);
+    if (r) return r;
+  }
+  const isAuthProfileLookup =
+    table === 'profiles' && hasOp(ops, 'maybeSingle') && !hasOp(ops, 'update') && !hasOp(ops, 'or');
+  if (isAuthProfileLookup) {
+    const id = opArgs(ops, 'eq')?.[1];
+    return { data: mockDb.profile && mockDb.profile.id === id ? mockDb.profile : null, error: null };
+  }
+  return { data: hasOp(ops, 'single') || hasOp(ops, 'maybeSingle') ? null : [], error: null, count: 0 };
+}
+
+function queryBuilder(table: string) {
+  const ops: QueryOp[] = [];
+  const run = () => Promise.resolve(resolveQuery(table, ops));
+  const builder: Record<string, unknown> = new Proxy(
+    {},
+    {
+      get(_t, prop: string) {
+        if (prop === 'then') {
+          return (onFulfilled: (v: QueryResult) => unknown, onRejected?: (e: unknown) => unknown) =>
+            run().then(onFulfilled, onRejected);
+        }
+        return (...args: unknown[]) => {
+          ops.push({ method: prop, args });
+          if (prop === 'single' || prop === 'maybeSingle') return run();
+          return builder;
+        };
+      },
+    },
+  );
+  return builder;
+}
 
 export function makeProfile(overrides: Partial<Profile> = {}): Profile {
   return {
@@ -113,5 +169,7 @@ export function mockSignInSucceeds(profile: Profile) {
 export function resetSupabaseMock() {
   mockSignedOut();
   listeners.clear();
+  queryHandlers.length = 0;
+  executedQueries.length = 0;
   vi.clearAllMocks();
 }
