@@ -4,8 +4,8 @@ import { renderRoute } from '../../tests/utils';
 import { ADMIN_NAV, CLIENT_NAV } from './navigation';
 
 describe('routing', () => {
-  it('renders the foundation preview at /', async () => {
-    renderRoute('/');
+  it('renders the dev foundation preview at /dev/foundation', async () => {
+    renderRoute('/dev/foundation');
     expect(
       await screen.findByRole('heading', { level: 1, name: /WinTech Investment Platform/i }),
     ).toBeInTheDocument();

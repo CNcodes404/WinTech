@@ -5,22 +5,33 @@ import { NotFoundPage } from '@/app/pages/NotFoundPage';
 import { PlaceholderPage } from '@/app/pages/PlaceholderPage';
 import { RouteErrorPage } from '@/app/pages/RouteErrorPage';
 import { UiKitPage } from '@/app/pages/UiKitPage';
+import { RootLayout } from '@/app/RootLayout';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { ClientLayout } from '@/components/layout/ClientLayout';
+import { AuthLayout } from '@/features/auth/components/AuthLayout';
+import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage';
+import { LoginPage } from '@/features/auth/pages/LoginPage';
+import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage';
+import { RootRedirect } from '@/features/auth/pages/RootRedirect';
 
 /**
- * Route map. Authentication arrives in Module 3 and role guards in Module 4. Frontend guards are a
- * UX convenience only — real access control is enforced by Supabase RLS.
+ * Route map. Role guards for /admin and /client arrive in Module 4. Frontend guards are a UX
+ * convenience only — real access control is enforced by Supabase RLS.
  */
 export const routes: RouteObject[] = [
   {
     path: '/',
+    element: <RootLayout />,
     errorElement: <RouteErrorPage />,
     children: [
-      { index: true, element: <FoundationPreviewPage /> },
+      { index: true, element: <RootRedirect /> },
       {
-        path: 'login',
-        element: <PlaceholderPage title="Sign in" description="Authentication arrives in Module 3." />,
+        element: <AuthLayout />,
+        children: [
+          { path: 'login', element: <LoginPage /> },
+          { path: 'forgot-password', element: <ForgotPasswordPage /> },
+          { path: 'reset-password', element: <ResetPasswordPage /> },
+        ],
       },
       {
         path: 'admin',
@@ -42,6 +53,7 @@ export const routes: RouteObject[] = [
           { path: '*', element: <NotFoundPage embedded /> },
         ],
       },
+      ...(import.meta.env.DEV ? [{ path: 'dev/foundation', element: <FoundationPreviewPage /> }] : []),
       { path: '*', element: <NotFoundPage /> },
     ],
   },

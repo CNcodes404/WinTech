@@ -15,6 +15,21 @@ Approved by the product owner on 12 Nov 2026 (Module 0 plan review). All account
 | H   | **Module order.** Schema is introduced per feature module; Admin Overview moved after the NAV/fee modules so it uses real seeded data.                                                                                                                                                                         | Plan         |
 | I   | **Supabase environment.** Use the product owner's hosted Supabase project.                                                                                                                                                                                                                                     | Module 3     |
 
+## Module 3 engineering choices
+
+- **Role helper in `private` schema:** `private.is_admin()` (SECURITY DEFINER) is used by RLS policies and is
+  not exposed through the REST API (Supabase advisor 0029).
+- **Column-level grants:** API users may update only `profiles.full_name` and `profiles.phone` (own row; admins
+  any row). Role/status/email changes require audited server functions (Modules 4–5).
+- **Profiles are never deleted** (`ON DELETE RESTRICT` to `auth.users`); deactivate instead.
+- **Password policy:** min 10 characters with a letter and a number (enforced in UI; set the same minimum in
+  Supabase Auth settings).
+- **PKCE auth flow** with session persisted by supabase-js; all cached data is cleared on sign-out.
+- **RLS tests** run against the live project inside a rollback-only `DO` block (Docker not available for a
+  local stack). See [SUPABASE.md](SUPABASE.md).
+- **First admin** (`chaitanyanikam2004@gmail.com`) promoted on 12 Nov 2026 via CLI by the project owner's
+  approval. Will be recorded in the audit log once it exists (Module 4).
+
 ## Module 1 engineering choices
 
 - **ESLint 9** (not 10): `eslint-plugin-jsx-a11y` does not yet support ESLint 10. Upgrade once it does.

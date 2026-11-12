@@ -20,6 +20,8 @@ export default defineConfig({
             { name: 'vendor-react', test: /node_modules[\\/](react|react-dom|react-router|scheduler)[\\/]/ },
             { name: 'vendor-ui', test: /node_modules[\\/](@radix-ui|@floating-ui|lucide-react)[\\/]/ },
             { name: 'vendor-data', test: /node_modules[\\/](@tanstack|decimal\.js)[\\/]/ },
+            { name: 'vendor-supabase', test: /node_modules[\\/](@supabase)[\\/]/ },
+            { name: 'vendor-forms', test: /node_modules[\\/](zod|react-hook-form|@hookform)[\\/]/ },
           ],
         },
       },

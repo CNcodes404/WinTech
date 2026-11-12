@@ -4,10 +4,8 @@ import { DemoBadge } from '@/components/ui/DemoBadge';
 import { cn } from '@/lib/utils/cn';
 import { BrandMark } from './BrandMark';
 import { DemoNotice } from './DemoNotice';
-import { UserMenu, type ShellUser } from './UserMenu';
-
-// Placeholder identity until authentication is wired in Module 3.
-const PREVIEW_USER: ShellUser = { name: 'Demo Client', email: 'client@example.test', roleLabel: 'Client' };
+import { UserMenu } from './UserMenu';
+import { useShellUser } from './useShellUser';
 
 const BASE = '/client';
 
@@ -15,6 +13,7 @@ const BASE = '/client';
  * Simple, read-only client shell. Top tabs on md+, bottom tab bar on phones for thumb reach.
  */
 export function ClientLayout() {
+  const shellUser = useShellUser();
   return (
     <div className="min-h-dvh pb-20 md:pb-0">
       <a
@@ -52,7 +51,7 @@ export function ClientLayout() {
           </nav>
           <div className="ml-auto flex items-center gap-3">
             <DemoBadge className="hidden sm:inline-flex" />
-            <UserMenu user={PREVIEW_USER} profilePath={`${BASE}/profile`} />
+            <UserMenu user={shellUser.user} onSignOut={shellUser.onSignOut} profilePath={`${BASE}/profile`} />
           </div>
         </div>
       </header>

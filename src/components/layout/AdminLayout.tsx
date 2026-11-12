@@ -7,14 +7,8 @@ import { DemoBadge } from '@/components/ui/DemoBadge';
 import { BrandMark } from './BrandMark';
 import { DemoNotice } from './DemoNotice';
 import { SidebarNav } from './SidebarNav';
-import { UserMenu, type ShellUser } from './UserMenu';
-
-// Placeholder identity until authentication is wired in Module 3.
-const PREVIEW_USER: ShellUser = {
-  name: 'Demo Admin',
-  email: 'admin@example.test',
-  roleLabel: 'Administrator',
-};
+import { UserMenu } from './UserMenu';
+import { useShellUser } from './useShellUser';
 
 const BASE = '/admin';
 
@@ -34,6 +28,7 @@ function SkipLink() {
  */
 export function AdminLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const shellUser = useShellUser();
 
   return (
     <div className="min-h-dvh">
@@ -99,7 +94,7 @@ export function AdminLayout() {
           </Link>
           <div className="ml-auto flex items-center gap-3">
             <DemoBadge className="hidden sm:inline-flex" />
-            <UserMenu user={PREVIEW_USER} />
+            <UserMenu user={shellUser.user} onSignOut={shellUser.onSignOut} />
           </div>
         </header>
 
