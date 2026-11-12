@@ -22,3 +22,6 @@ supabase/.temp/
 .DS_Store
 Thumbs.db
 *.log
+
+# Vercel CLI link (project/org ids; never commit)
+.vercel

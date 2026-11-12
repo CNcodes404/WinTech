@@ -2,6 +2,19 @@
 
 The frontend is a static Vite build hosted on **Vercel**; the backend is the Supabase project **Wintech**.
 
+## Current production setup (13 Nov 2026)
+
+| Item                     | Value                                                                                  |
+| ------------------------ | -------------------------------------------------------------------------------------- |
+| Production URL           | **https://wintechapp.vercel.app** (project domain; every `--prod` deploy aliases here) |
+| Vercel project           | `wintech` (linked locally via `.vercel/`, git-ignored)                                 |
+| Vercel env vars          | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (publishable) — Production + Preview     |
+| Edge Function CORS       | `ALLOWED_ORIGINS=https://wintechapp.vercel.app` (+ localhost:5173 built in)            |
+| Per-deployment URLs      | Protected by Vercel Authentication (302 to sign-in)                                    |
+| Deploy from this machine | `npx vercel deploy --prod --yes`                                                       |
+
+`wintechapp.vercel.app` was chosen because `wintech.vercel.app` belongs to another Vercel user.
+
 ## 1. Frontend on Vercel (one-time)
 
 1. Sign in at <https://vercel.com> with GitHub.
