@@ -8,6 +8,53 @@ export type Database = {
   };
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string;
+          actor_id: string | null;
+          after_data: Json | null;
+          before_data: Json | null;
+          created_at: string;
+          entity_id: string | null;
+          entity_type: string;
+          id: string;
+          reason: string | null;
+          seq: number;
+        };
+        Insert: {
+          action: string;
+          actor_id?: string | null;
+          after_data?: Json | null;
+          before_data?: Json | null;
+          created_at?: string;
+          entity_id?: string | null;
+          entity_type: string;
+          id?: string;
+          reason?: string | null;
+          seq?: never;
+        };
+        Update: {
+          action?: string;
+          actor_id?: string | null;
+          after_data?: Json | null;
+          before_data?: Json | null;
+          created_at?: string;
+          entity_id?: string | null;
+          entity_type?: string;
+          id?: string;
+          reason?: string | null;
+          seq?: never;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'audit_logs_actor_id_fkey';
+            columns: ['actor_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       profiles: {
         Row: {
           created_at: string;
@@ -46,7 +93,22 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      admin_set_user_role: {
+        Args: {
+          p_reason: string;
+          p_role: Database['public']['Enums']['app_role'];
+          p_user_id: string;
+        };
+        Returns: undefined;
+      };
+      admin_set_user_status: {
+        Args: {
+          p_reason: string;
+          p_status: Database['public']['Enums']['profile_status'];
+          p_user_id: string;
+        };
+        Returns: undefined;
+      };
     };
     Enums: {
       app_role: 'admin' | 'client';

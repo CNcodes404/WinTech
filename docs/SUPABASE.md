@@ -29,8 +29,29 @@ rolled back** — safe against the live project.
 ```bash
 npx supabase db query --remote -f supabase/tests/rls_profiles.test.sql
 # Expected: ERROR ... ALL_PROFILE_RLS_TESTS_PASSED (21 checks)
+npx supabase db query --remote -f supabase/tests/rls_audit.test.sql
+# Expected: ERROR ... ALL_AUDIT_TESTS_PASSED (22 checks)
 npx supabase db advisors --remote --type security
 ```
+
+### Accepted advisor findings
+
+| Finding                                                                            | Why it is accepted                                                                                                                 |
+| ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 0029 `admin_set_user_role` / `admin_set_user_status` executable by signed-in users | Intentional admin API. Both functions check `private.is_admin()` first and reject everyone else (covered by `rls_audit.test.sql`). |
+
+## Edge Functions
+
+```bash
+npx supabase functions deploy admin-create-client --use-api --no-verify-jwt
+```
+
+- `admin-create-client` verifies the caller's access token itself and requires an active admin.
+- The service-role key is provided to Edge Functions automatically by Supabase — no secret to set.
+- CORS allows `http://localhost:5173` by default. For a deployed frontend set
+  `npx supabase secrets set ALLOWED_ORIGINS=https://your-domain` (comma-separated).
+- V1 creates accounts with an admin-chosen temporary password (no invite email; the default Supabase mailer
+  only delivers to project team addresses).
 
 ## Admin accounts
 

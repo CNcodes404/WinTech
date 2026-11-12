@@ -52,6 +52,22 @@ export const supabaseMock = {
     resetPasswordForEmail: vi.fn(async () => ({ data: {}, error: null })),
     updateUser: vi.fn(async () => ({ data: { user: mockDb.session?.user ?? null }, error: null })),
   },
+  rpc: vi.fn(
+    async (_fn: string, _args?: Record<string, unknown>) =>
+      ({ data: null, error: null }) as {
+        data: unknown;
+        error: { code?: string; message?: string } | null;
+      },
+  ),
+  functions: {
+    invoke: vi.fn(
+      async (_name: string, _options?: unknown) =>
+        ({ data: null, error: null }) as {
+          data: unknown;
+          error: unknown;
+        },
+    ),
+  },
   from: vi.fn((table: string) => {
     if (table !== 'profiles') throw new Error(`Unexpected table in test: ${table}`);
     const builder = {

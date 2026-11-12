@@ -15,6 +15,19 @@ Approved by the product owner on 12 Nov 2026 (Module 0 plan review). All account
 | H   | **Module order.** Schema is introduced per feature module; Admin Overview moved after the NAV/fee modules so it uses real seeded data.                                                                                                                                                                         | Plan         |
 | I   | **Supabase environment.** Use the product owner's hosted Supabase project.                                                                                                                                                                                                                                     | Module 3     |
 
+## Module 4 engineering choices
+
+- **Audit log is append-only** — UPDATE/DELETE/TRUNCATE are blocked by triggers for every role, API users
+  cannot INSERT, and only admins can read it. Rows are written in the same transaction as the change.
+- **Every profile change is audited** by trigger (before/after of changed fields, actor, optional reason).
+- **Role/status changes** only through `admin_set_user_role` / `admin_set_user_status` (active admin, mandatory
+  reason ≥ 5 chars, cannot change own role/status). Last-admin protection still applies.
+- **Client accounts** are created by the `admin-create-client` Edge Function with an admin-chosen **temporary
+  password** (V1). Email invites need custom SMTP — deferred. Forced password change on first login is not
+  yet implemented (noted for Module 12/14).
+- **Route guards** (`RequireRole`) send signed-out users to sign-in (with a safe return path), keep clients out
+  of admin screens and admins out of the client portal, and block inactive accounts.
+
 ## Module 3 engineering choices
 
 - **Role helper in `private` schema:** `private.is_admin()` (SECURITY DEFINER) is used by RLS policies and is

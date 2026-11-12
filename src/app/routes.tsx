@@ -13,9 +13,10 @@ import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage';
 import { RootRedirect } from '@/features/auth/pages/RootRedirect';
+import { RequireRole } from '@/features/auth/RequireRole';
 
 /**
- * Route map. Role guards for /admin and /client arrive in Module 4. Frontend guards are a UX
+ * Route map. /admin requires an active admin, /client an active client. Frontend guards are a UX
  * convenience only — real access control is enforced by Supabase RLS.
  */
 export const routes: RouteObject[] = [
@@ -34,23 +35,33 @@ export const routes: RouteObject[] = [
         ],
       },
       {
-        path: 'admin',
-        element: <AdminLayout />,
+        element: <RequireRole allow="admin" />,
         children: [
-          { index: true, element: <Navigate to="overview" replace /> },
-          ...ADMIN_NAV.map((item) => ({ path: item.path, element: <PlaceholderPage item={item} /> })),
-          // Developer component showcase inside the real shell (removed from production builds).
-          ...(import.meta.env.DEV ? [{ path: 'ui-kit', element: <UiKitPage /> }] : []),
-          { path: '*', element: <NotFoundPage embedded /> },
+          {
+            path: 'admin',
+            element: <AdminLayout />,
+            children: [
+              { index: true, element: <Navigate to="overview" replace /> },
+              ...ADMIN_NAV.map((item) => ({ path: item.path, element: <PlaceholderPage item={item} /> })),
+              // Developer component showcase inside the real shell (removed from production builds).
+              ...(import.meta.env.DEV ? [{ path: 'ui-kit', element: <UiKitPage /> }] : []),
+              { path: '*', element: <NotFoundPage embedded /> },
+            ],
+          },
         ],
       },
       {
-        path: 'client',
-        element: <ClientLayout />,
+        element: <RequireRole allow="client" />,
         children: [
-          { index: true, element: <Navigate to="overview" replace /> },
-          ...CLIENT_NAV.map((item) => ({ path: item.path, element: <PlaceholderPage item={item} /> })),
-          { path: '*', element: <NotFoundPage embedded /> },
+          {
+            path: 'client',
+            element: <ClientLayout />,
+            children: [
+              { index: true, element: <Navigate to="overview" replace /> },
+              ...CLIENT_NAV.map((item) => ({ path: item.path, element: <PlaceholderPage item={item} /> })),
+              { path: '*', element: <NotFoundPage embedded /> },
+            ],
+          },
         ],
       },
       ...(import.meta.env.DEV ? [{ path: 'dev/foundation', element: <FoundationPreviewPage /> }] : []),
