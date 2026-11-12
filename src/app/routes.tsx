@@ -17,10 +17,13 @@ import { RootRedirect } from '@/features/auth/pages/RootRedirect';
 import { RequireRole } from '@/features/auth/RequireRole';
 import { ClientDetailPage } from '@/features/clients/pages/ClientDetailPage';
 import { ClientsPage } from '@/features/clients/pages/ClientsPage';
+import { CycleDetailPage } from '@/features/cycles/pages/CycleDetailPage';
+import { CyclesPage } from '@/features/cycles/pages/CyclesPage';
 
 /** Admin sections that have a real screen; the rest render a placeholder until their module. */
 const ADMIN_PAGES: Partial<Record<string, ReactElement>> = {
   clients: <ClientsPage />,
+  cycles: <CyclesPage />,
 };
 
 /**
@@ -55,6 +58,7 @@ export const routes: RouteObject[] = [
                 element: ADMIN_PAGES[item.path] ?? <PlaceholderPage item={item} />,
               })),
               { path: 'clients/:clientId', element: <ClientDetailPage /> },
+              { path: 'cycles/:cycleId', element: <CycleDetailPage /> },
               // Developer component showcase inside the real shell (removed from production builds).
               ...(import.meta.env.DEV ? [{ path: 'ui-kit', element: <UiKitPage /> }] : []),
               { path: '*', element: <NotFoundPage embedded /> },

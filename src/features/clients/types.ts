@@ -1,5 +1,4 @@
 import type { ProfileStatus } from '@/features/auth/types';
-import type { Json } from '@/lib/supabase/database.types';
 
 export interface ClientRow {
   id: string;
@@ -27,13 +26,3 @@ export interface ClientListParams {
 }
 
 export const CLIENTS_PAGE_SIZE = 20;
-
-export interface ClientHistoryEntry {
-  id: string;
-  action: string;
-  before_data: Json | null;
-  after_data: Json | null;
-  reason: string | null;
-  created_at: string;
-  actor: { full_name: string; email: string } | null;
-}

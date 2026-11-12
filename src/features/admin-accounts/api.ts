@@ -2,26 +2,14 @@ import { FunctionsHttpError } from '@supabase/supabase-js';
 import type { AppRole, ProfileStatus } from '@/features/auth/types';
 import { UserFacingError } from '@/lib/errors';
 import { supabase } from '@/lib/supabase/client';
+import { GENERIC_SAVE_ERROR, toUserFacingDbError as toUserFacing } from '@/lib/supabase/errors';
 
 /**
  * Admin account-management calls. Authorization is enforced server-side (SECURITY DEFINER
  * functions + Edge Function); these wrappers only translate errors into safe messages.
  */
 
-// Postgres error codes raised deliberately by our functions with user-safe messages.
-const SAFE_PG_CODES = new Set([
-  '42501', // insufficient_privilege
-  '23514', // check_violation (e.g. own role, last admin)
-  '22023', // invalid_parameter_value (reason too short)
-  'P0002', // no_data_found
-]);
-
-export const GENERIC_ERROR = 'The change could not be saved. Nothing was changed. Please try again.';
-
-function toUserFacing(error: { code?: string; message?: string }): Error {
-  if (error.code && SAFE_PG_CODES.has(error.code) && error.message) return new UserFacingError(error.message);
-  return new Error(GENERIC_ERROR);
-}
+export const GENERIC_ERROR = GENERIC_SAVE_ERROR;
 
 export async function setUserRole(userId: string, role: AppRole, reason: string): Promise<void> {
   const { error } = await supabase.rpc('admin_set_user_role', {

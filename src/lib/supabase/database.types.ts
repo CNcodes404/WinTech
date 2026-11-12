@@ -55,6 +55,130 @@ export type Database = {
           },
         ];
       };
+      cycle_fee_terms: {
+        Row: {
+          cancel_reason: string | null;
+          cancelled_at: string | null;
+          cancelled_by: string | null;
+          created_at: string;
+          created_by: string;
+          cycle_id: string;
+          effective_from: string;
+          fee_policy: string;
+          id: string;
+          performance_fee_rate: number;
+          reason: string;
+          version: number;
+        };
+        Insert: {
+          cancel_reason?: string | null;
+          cancelled_at?: string | null;
+          cancelled_by?: string | null;
+          created_at?: string;
+          created_by: string;
+          cycle_id: string;
+          effective_from: string;
+          fee_policy?: string;
+          id?: string;
+          performance_fee_rate: number;
+          reason: string;
+          version: number;
+        };
+        Update: {
+          cancel_reason?: string | null;
+          cancelled_at?: string | null;
+          cancelled_by?: string | null;
+          created_at?: string;
+          created_by?: string;
+          cycle_id?: string;
+          effective_from?: string;
+          fee_policy?: string;
+          id?: string;
+          performance_fee_rate?: number;
+          reason?: string;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'cycle_fee_terms_cancelled_by_fkey';
+            columns: ['cancelled_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'cycle_fee_terms_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'cycle_fee_terms_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_overview';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'cycle_fee_terms_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'investment_cycles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      investment_cycles: {
+        Row: {
+          base_nav: number;
+          created_at: string;
+          created_by: string;
+          currency: string;
+          description: string | null;
+          end_date: string;
+          id: string;
+          name: string;
+          start_date: string;
+          status: Database['public']['Enums']['cycle_status'];
+          updated_at: string;
+        };
+        Insert: {
+          base_nav?: number;
+          created_at?: string;
+          created_by: string;
+          currency?: string;
+          description?: string | null;
+          end_date: string;
+          id?: string;
+          name: string;
+          start_date: string;
+          status?: Database['public']['Enums']['cycle_status'];
+          updated_at?: string;
+        };
+        Update: {
+          base_nav?: number;
+          created_at?: string;
+          created_by?: string;
+          currency?: string;
+          description?: string | null;
+          end_date?: string;
+          id?: string;
+          name?: string;
+          start_date?: string;
+          status?: Database['public']['Enums']['cycle_status'];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'investment_cycles_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       profiles: {
         Row: {
           created_at: string;
@@ -90,9 +214,70 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      cycle_overview: {
+        Row: {
+          base_nav: number | null;
+          created_at: string | null;
+          created_by: string | null;
+          currency: string | null;
+          current_fee_effective_from: string | null;
+          current_fee_rate: number | null;
+          current_fee_version: number | null;
+          description: string | null;
+          end_date: string | null;
+          id: string | null;
+          name: string | null;
+          pending_fee_effective_from: string | null;
+          pending_fee_rate: number | null;
+          pending_fee_version: number | null;
+          start_date: string | null;
+          status: Database['public']['Enums']['cycle_status'] | null;
+          updated_at: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'investment_cycles_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Functions: {
+      admin_add_fee_terms: {
+        Args: {
+          p_cycle_id: string;
+          p_effective_from: string;
+          p_fee_rate: number;
+          p_reason: string;
+        };
+        Returns: string;
+      };
+      admin_cancel_fee_terms: {
+        Args: { p_reason: string; p_terms_id: string };
+        Returns: undefined;
+      };
+      admin_create_cycle: {
+        Args: {
+          p_base_nav: number;
+          p_description: string;
+          p_end_date: string;
+          p_fee_rate: number;
+          p_name: string;
+          p_start_date: string;
+        };
+        Returns: string;
+      };
+      admin_set_cycle_status: {
+        Args: {
+          p_cycle_id: string;
+          p_reason: string;
+          p_status: Database['public']['Enums']['cycle_status'];
+        };
+        Returns: undefined;
+      };
       admin_set_user_role: {
         Args: {
           p_reason: string;
@@ -109,9 +294,22 @@ export type Database = {
         };
         Returns: undefined;
       };
+      admin_update_cycle: {
+        Args: {
+          p_base_nav: number;
+          p_cycle_id: string;
+          p_description: string;
+          p_end_date: string;
+          p_name: string;
+          p_reason: string;
+          p_start_date: string;
+        };
+        Returns: undefined;
+      };
     };
     Enums: {
       app_role: 'admin' | 'client';
+      cycle_status: 'draft' | 'open' | 'active' | 'closed' | 'settled';
       profile_status: 'active' | 'inactive';
     };
     CompositeTypes: {
@@ -234,6 +432,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ['admin', 'client'],
+      cycle_status: ['draft', 'open', 'active', 'closed', 'settled'],
       profile_status: ['active', 'inactive'],
     },
   },

@@ -1,13 +1,7 @@
 import { UserFacingError } from '@/lib/errors';
 import { supabase } from '@/lib/supabase/client';
 import { sanitizeSearch } from './params';
-import {
-  CLIENTS_PAGE_SIZE,
-  type ClientDetail,
-  type ClientHistoryEntry,
-  type ClientListParams,
-  type ClientRow,
-} from './types';
+import { CLIENTS_PAGE_SIZE, type ClientDetail, type ClientListParams, type ClientRow } from './types';
 
 /**
  * Client (profile) data access for admins. RLS restricts these reads/writes to active admins;
@@ -67,18 +61,4 @@ export async function updateClientContact(
       'This client could not be updated. They may have been removed or you lack access.',
     );
   }
-}
-
-export async function listClientHistory(id: string, limit = 50): Promise<ClientHistoryEntry[]> {
-  const { data, error } = await supabase
-    .from('audit_logs')
-    .select(
-      'id, action, before_data, after_data, reason, created_at, actor:profiles!audit_logs_actor_id_fkey(full_name, email)',
-    )
-    .eq('entity_type', 'profile')
-    .eq('entity_id', id)
-    .order('seq', { ascending: false })
-    .limit(limit);
-  if (error) throw error;
-  return (data ?? []) as unknown as ClientHistoryEntry[];
 }

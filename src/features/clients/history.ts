@@ -1,5 +1,5 @@
+import type { AuditEntry } from '@/features/audit/api';
 import type { Json } from '@/lib/supabase/database.types';
-import type { ClientHistoryEntry } from './types';
 
 const FIELD_LABEL: Record<string, string> = {
   full_name: 'name',
@@ -19,7 +19,7 @@ function display(v: Json | undefined): string {
 }
 
 /** Plain-language description of an audit entry for the client's history list. */
-export function describeEntry(e: Pick<ClientHistoryEntry, 'action' | 'before_data' | 'after_data'>): string {
+export function describeEntry(e: Pick<AuditEntry, 'action' | 'before_data' | 'after_data'>): string {
   const before = obj(e.before_data);
   const after = obj(e.after_data);
   switch (e.action) {

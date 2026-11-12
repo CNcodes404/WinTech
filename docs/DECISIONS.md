@@ -15,6 +15,23 @@ Approved by the product owner on 12 Nov 2026 (Module 0 plan review). All account
 | H   | **Module order.** Schema is introduced per feature module; Admin Overview moved after the NAV/fee modules so it uses real seeded data.                                                                                                                                                                         | Plan         |
 | I   | **Supabase environment.** Use the product owner's hosted Supabase project.                                                                                                                                                                                                                                     | Module 3     |
 
+## Module 6 engineering choices
+
+- **Fee terms are versioned and append-only** (`cycle_fee_terms`). Version 1 is created with the cycle and is
+  effective immediately. New versions take effect immediately or from 00:00 IST on a future date; **backdating
+  is rejected**. A version that has not taken effect yet can be **cancelled** (kept, with reason); effective
+  versions can never be edited or deleted — not even by the database owner.
+- `private.fee_terms_at(cycle, time)` returns the rate in force at any instant; Module 7 uses it so each
+  contribution lot locks the rate in force when it is issued (Decision C).
+- **Fee rate range:** 0% ≤ rate < 100%, at most 4 decimals as a percentage (6 as a fraction). No default rate is
+  hard-coded; the admin must enter one.
+- **Lifecycle:** draft → open → active → closed → settled, one step at a time, with a mandatory reason. Base NAV
+  is editable only in draft; dates only in draft/open; closed/settled cycles are read-only. Enforced by a
+  trigger for every role, and mirrored in the UI.
+- **Cycles are never deleted.** Clients cannot see cycles yet; visibility of their own cycles comes with the
+  client portal (Module 12).
+- **NUMERIC values travel as strings** in both directions (`col::text` in selects, string parameters to RPCs).
+
 ## Module 5 engineering choices
 
 - **Client list** is server-side filtered, sorted and paginated (20 per page); state lives in the URL so views

@@ -9,7 +9,8 @@ import { LoadingRegion, Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState, ErrorState } from '@/components/ui/States';
 import { useToast } from '@/components/ui/toast-context';
 import { formatDate, formatDateTime } from '@/lib/format';
-import { ClientHistory } from '../components/ClientHistory';
+import { EntityHistory } from '@/features/audit/EntityHistory';
+import { describeEntry } from '../history';
 import { ClientStatusBadge } from '../components/ClientStatusBadge';
 import { EditContactDialog } from '../components/EditContactDialog';
 import { isUuid, useClient, useSetClientStatus } from '../queries';
@@ -135,7 +136,7 @@ export function ClientDetailPage() {
 
         <Card className="h-fit">
           <CardHeader title="Account history" description="From the audit log." />
-          <ClientHistory clientId={client.id} />
+          <EntityHistory entityType="profile" entityId={client.id} describe={describeEntry} />
         </Card>
       </div>
 
