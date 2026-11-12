@@ -32,6 +32,7 @@ been approved by qualified professionals (see README).
 - Reports export at most 5,000 rows per CSV; PDF is via the browser's print dialog.
 - Demo data timeline is compressed (three NAVs seconds apart) because NAVs can only be calculated from
   valuations dated after the units they cover, and the ledger records real time.
-- Demo seed data in Wintech is permanent (append-only records).
+- Append-only records cannot be removed from the app. The one-off maintenance script
+  `supabase/scripts/remove_demo_data.sql` (owner-run, audited) was used to remove the demo financial data.
 - Single INR currency; India Standard Time display throughout.
 - No MFA, rate-limit tuning, backups/PITR configuration or monitoring beyond Supabase defaults.

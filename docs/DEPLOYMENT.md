@@ -70,6 +70,14 @@ npx supabase gen types typescript --remote --schema public > src/lib/supabase/da
 
 ## 5. Demo data
 
-`supabase/seed/demo_seed.sql` creates fictional demo data **permanently** (append-only records cannot be
-deleted). It is idempotent and has already been run on Wintech (13 Nov 2026). Use a separate Supabase
-project if you need a resettable demo.
+`supabase/seed/demo_seed.sql` creates fictional demo data (5 clients, a cycle, contributions, valuations,
+NAVs and fees). Financial records are append-only, so the app itself can never delete them.
+
+**Current state of Wintech (13 Nov 2026):** the seed was run, then at the owner's request its financial data
+was removed with `supabase/scripts/remove_demo_data.sql` — the only sanctioned exception to the append-only
+rule (guards disabled inside one atomic transaction, re-enabled, cleanup recorded in the audit log as
+`maintenance.demo_data_removed`). The **5 demo client accounts were kept** (`@example.test`, still flagged to
+change their temporary password). No cycles, contributions, valuations or NAVs exist.
+
+Running `demo_seed.sql` again would **not** recreate data while the demo clients exist (it would fail on their
+duplicate emails). Prefer a separate Supabase project for a resettable demo.

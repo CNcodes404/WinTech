@@ -182,6 +182,14 @@ describe('overview logic', () => {
     expect(describeActivity(activity[1]!)).toBe('Role changed from client to admin');
     expect(activityLink(activity[0]!)).toBe(`/admin/nav/snapshots/${SNAP_ID}`);
     expect(activityLink({ ...activity[0]!, entity_type: 'unknown' })).toBeNull();
+    const cleanup = {
+      ...activity[1]!,
+      action: 'maintenance.demo_data_removed',
+      entity_type: 'maintenance',
+      entity_id: null,
+    };
+    expect(describeActivity(cleanup)).toMatch(/demo financial data removed/);
+    expect(activityLink(cleanup)).toBeNull();
   });
 });
 

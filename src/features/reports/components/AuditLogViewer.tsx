@@ -51,6 +51,7 @@ const ACTIONS = [
   'nav.published',
   'nav.corrected',
   'nav.discarded',
+  'maintenance.demo_data_removed',
 ];
 
 function Detail({ row }: { row: AuditRow }) {

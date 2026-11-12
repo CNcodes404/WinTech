@@ -10,6 +10,9 @@ import type { ActivityEntry } from './api';
 /** Plain-language sentence for any audit entry, using each feature's own wording. */
 export function describeActivity(e: ActivityEntry): string {
   if (e.action === 'fees.crystallised') return 'Final indicative fee recorded at cycle close';
+  if (e.action === 'maintenance.demo_data_removed') {
+    return 'Fictional demo financial data removed by the project owner (user accounts kept)';
+  }
   switch (e.entity_type) {
     case 'profile':
       return describeProfileEntry(e);
