@@ -15,6 +15,21 @@ Approved by the product owner on 12 Nov 2026 (Module 0 plan review). All account
 | H   | **Module order.** Schema is introduced per feature module; Admin Overview moved after the NAV/fee modules so it uses real seeded data.                                                                                                                                                                         | Plan         |
 | I   | **Supabase environment.** Use the product owner's hosted Supabase project.                                                                                                                                                                                                                                     | Module 3     |
 
+## Module 13 engineering choices
+
+- **Reports** (admin only, read-only, CSV export): contribution register (status, cycle, IST date range;
+  includes admin notes), client statement (any client/cycle, printable), valuation report (holdings + totals),
+  NAV history (published and corrected), performance-fee report (per lot at a chosen published NAV).
+- **Exports are capped at 5,000 rows** with a visible warning; preview shows 50 rows.
+- **CSV safety:** shared `src/lib/csv.ts` with RFC 4180 quoting and spreadsheet-formula neutralisation; UTF-8 BOM.
+- **Audit log viewer:** filters by type, exact action, actor (including system/project owner) and IST date
+  range; 50 per page; expandable before/after JSON; CSV export. Read-only (the table is append-only).
+- **Settings = administrator management** via the audited `admin_set_user_role` (grant to active clients,
+  remove from others; not self; last-admin protection in the DB) plus own password change. No generic
+  `app_settings` table (not needed in V1).
+- **Printing:** admin and client shells hide navigation and filters in print, so statements print cleanly.
+- No schema changes.
+
 ## Module 12 engineering choices (approved: "go with your recommendations")
 
 - **Client reads go only through `client_*` SECURITY DEFINER functions** that require an active client and

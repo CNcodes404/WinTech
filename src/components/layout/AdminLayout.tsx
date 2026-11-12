@@ -35,7 +35,7 @@ export function AdminLayout() {
       <SkipLink />
 
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-navy-900 lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-navy-900 lg:flex print:hidden">
         <div className="flex h-16 items-center px-5">
           <Link to={`${BASE}/overview`} aria-label="WinTech admin home">
             <BrandMark inverted />
@@ -78,8 +78,8 @@ export function AdminLayout() {
         </RadixDialog.Portal>
       </RadixDialog.Root>
 
-      <div className="flex min-h-dvh flex-col lg:pl-64">
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-line bg-surface/95 px-4 backdrop-blur sm:px-6">
+      <div className="flex min-h-dvh flex-col lg:pl-64 print:pl-0">
+        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-line bg-surface/95 px-4 backdrop-blur sm:px-6 print:hidden">
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
@@ -106,7 +106,7 @@ export function AdminLayout() {
           <Outlet />
         </main>
 
-        <footer className="mx-auto w-full max-w-7xl px-4 pb-6 sm:px-6">
+        <footer className="mx-auto w-full max-w-7xl px-4 pb-6 sm:px-6 print:hidden">
           <DemoNotice className="border-t border-line pt-4" />
         </footer>
       </div>

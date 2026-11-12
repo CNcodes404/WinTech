@@ -31,6 +31,8 @@ import { ClientProfilePage } from '@/features/portal/pages/ClientProfilePage';
 import { MyInvestmentPage } from '@/features/portal/pages/MyInvestmentPage';
 import { StatementsPage } from '@/features/portal/pages/StatementsPage';
 import { PortfolioPage } from '@/features/portfolio/pages/PortfolioPage';
+import { ReportsPage } from '@/features/reports/pages/ReportsPage';
+import { SettingsPage } from '@/features/settings/pages/SettingsPage';
 import { ValuationDetailPage } from '@/features/portfolio/pages/ValuationDetailPage';
 import { ValuationEditorPage } from '@/features/portfolio/pages/ValuationEditorPage';
 import { CyclesPage } from '@/features/cycles/pages/CyclesPage';
@@ -44,6 +46,8 @@ const ADMIN_PAGES: Partial<Record<string, ReactElement>> = {
   portfolio: <PortfolioPage />,
   nav: <NavPage />,
   'profit-sharing': <ProfitSharingPage />,
+  reports: <ReportsPage />,
+  settings: <SettingsPage />,
 };
 
 /** Client portal sections. */

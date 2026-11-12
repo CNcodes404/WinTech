@@ -59,33 +59,4 @@ export function describeClientActivity(a: ClientActivity): string {
   }
 }
 
-// ------------------------------------------------------------------------------------------------
-// CSV export
-// ------------------------------------------------------------------------------------------------
-
-/**
- * RFC 4180 CSV with spreadsheet-formula neutralisation: cells starting with = + - @ (or tab/CR)
- * are prefixed with an apostrophe so they cannot execute as formulas when opened in Excel.
- * Plain negative numbers are left as numbers.
- */
-export function toCsv(headers: string[], rows: (string | null | undefined)[][]): string {
-  const cell = (v: string | null | undefined) => {
-    let s = v ?? '';
-    if (/^[=+\-@\t\r]/.test(s) && !/^-\d+(\.\d+)?$/.test(s)) s = `'${s}`;
-    return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  return [headers, ...rows].map((r) => r.map(cell).join(',')).join('\r\n') + '\r\n';
-}
-
-export function downloadCsv(filename: string, csv: string) {
-  // BOM so Excel opens UTF-8 (₹) correctly.
-  const blob = new Blob(['﻿', csv], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
+export { downloadCsv, toCsv } from '@/lib/csv';
