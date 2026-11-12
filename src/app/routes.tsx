@@ -20,6 +20,9 @@ import { ClientsPage } from '@/features/clients/pages/ClientsPage';
 import { ContributionDetailPage } from '@/features/contributions/pages/ContributionDetailPage';
 import { ContributionsPage } from '@/features/contributions/pages/ContributionsPage';
 import { CycleDetailPage } from '@/features/cycles/pages/CycleDetailPage';
+import { PortfolioPage } from '@/features/portfolio/pages/PortfolioPage';
+import { ValuationDetailPage } from '@/features/portfolio/pages/ValuationDetailPage';
+import { ValuationEditorPage } from '@/features/portfolio/pages/ValuationEditorPage';
 import { CyclesPage } from '@/features/cycles/pages/CyclesPage';
 
 /** Admin sections that have a real screen; the rest render a placeholder until their module. */
@@ -27,6 +30,7 @@ const ADMIN_PAGES: Partial<Record<string, ReactElement>> = {
   clients: <ClientsPage />,
   cycles: <CyclesPage />,
   contributions: <ContributionsPage />,
+  portfolio: <PortfolioPage />,
 };
 
 /**
@@ -63,6 +67,9 @@ export const routes: RouteObject[] = [
               { path: 'clients/:clientId', element: <ClientDetailPage /> },
               { path: 'cycles/:cycleId', element: <CycleDetailPage /> },
               { path: 'contributions/:contributionId', element: <ContributionDetailPage /> },
+              { path: 'portfolio/valuations/new', element: <ValuationEditorPage /> },
+              { path: 'portfolio/valuations/:valuationId', element: <ValuationDetailPage /> },
+              { path: 'portfolio/valuations/:valuationId/edit', element: <ValuationEditorPage /> },
               // Developer component showcase inside the real shell (removed from production builds).
               ...(import.meta.env.DEV ? [{ path: 'ui-kit', element: <UiKitPage /> }] : []),
               { path: '*', element: <NotFoundPage embedded /> },

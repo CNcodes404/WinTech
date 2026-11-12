@@ -15,6 +15,22 @@ Approved by the product owner on 12 Nov 2026 (Module 0 plan review). All account
 | H   | **Module order.** Schema is introduced per feature module; Admin Overview moved after the NAV/fee modules so it uses real seeded data.                                                                                                                                                                         | Plan         |
 | I   | **Supabase environment.** Use the product owner's hosted Supabase project.                                                                                                                                                                                                                                     | Module 3     |
 
+## Module 8 engineering choices
+
+- **Valuation lifecycle:** draft (editable) → approved (immutable snapshot) → superseded (only by an approved
+  correction of the same cycle); or draft → discarded. Nothing is deleted; at most one open correction per
+  valuation.
+- **Server computes all derived amounts** (`market_value = ROUND(qty × price, 2)` per line, then holdings, gross
+  assets, net asset value). A table constraint enforces the totals identity on every write. The editor shows a
+  decimal-safe preview only.
+- **Inputs:** cash/other assets/liabilities ≥ 0 with 2 decimals; quantity > 0 and price ≥ 0 with 8 decimals;
+  symbols normalised to upper case; exchange NSE/BSE/Other/blank; one line per symbol + exchange; ≤ 200 lines.
+  Net asset value may be negative (shown in red), never hidden.
+- **Valuations allowed for open, active and closed cycles** (closing valuation); not for draft or settled.
+  Valuation time cannot be in the future.
+- **New valuations are pre-filled from the latest approved one** (copy-forward), with the time reset to now.
+- **No buy/sell controls** and source is always `manual_demo`, labelled "Manual demo entry".
+
 ## Module 7 engineering choices (approved: "go with your proposals")
 
 - **Contributions are accepted only while a cycle is open or active**; verification and reversal likewise.

@@ -429,6 +429,178 @@ export type Database = {
           },
         ];
       };
+      portfolio_valuation_items: {
+        Row: {
+          average_cost: number | null;
+          exchange: string | null;
+          id: string;
+          instrument_name: string | null;
+          line_no: number;
+          market_value: number;
+          notes: string | null;
+          quantity: number;
+          symbol: string;
+          valuation_id: string;
+          valuation_price: number;
+        };
+        Insert: {
+          average_cost?: number | null;
+          exchange?: string | null;
+          id?: string;
+          instrument_name?: string | null;
+          line_no: number;
+          market_value: number;
+          notes?: string | null;
+          quantity: number;
+          symbol: string;
+          valuation_id: string;
+          valuation_price: number;
+        };
+        Update: {
+          average_cost?: number | null;
+          exchange?: string | null;
+          id?: string;
+          instrument_name?: string | null;
+          line_no?: number;
+          market_value?: number;
+          notes?: string | null;
+          quantity?: number;
+          symbol?: string;
+          valuation_id?: string;
+          valuation_price?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'portfolio_valuation_items_valuation_id_fkey';
+            columns: ['valuation_id'];
+            isOneToOne: false;
+            referencedRelation: 'portfolio_valuations';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      portfolio_valuations: {
+        Row: {
+          approved_at: string | null;
+          approved_by: string | null;
+          cash_balance: number;
+          corrects_valuation_id: string | null;
+          created_at: string;
+          cycle_id: string;
+          discarded_at: string | null;
+          entered_by: string;
+          gross_asset_value: number;
+          gross_net_asset_value: number;
+          holdings_value: number;
+          id: string;
+          liabilities: number;
+          notes: string | null;
+          other_assets: number;
+          source: string;
+          status: Database['public']['Enums']['valuation_status'];
+          superseded_at: string | null;
+          superseded_by: string | null;
+          updated_at: string;
+          valuation_at: string;
+        };
+        Insert: {
+          approved_at?: string | null;
+          approved_by?: string | null;
+          cash_balance?: number;
+          corrects_valuation_id?: string | null;
+          created_at?: string;
+          cycle_id: string;
+          discarded_at?: string | null;
+          entered_by: string;
+          gross_asset_value?: number;
+          gross_net_asset_value?: number;
+          holdings_value?: number;
+          id?: string;
+          liabilities?: number;
+          notes?: string | null;
+          other_assets?: number;
+          source?: string;
+          status?: Database['public']['Enums']['valuation_status'];
+          superseded_at?: string | null;
+          superseded_by?: string | null;
+          updated_at?: string;
+          valuation_at: string;
+        };
+        Update: {
+          approved_at?: string | null;
+          approved_by?: string | null;
+          cash_balance?: number;
+          corrects_valuation_id?: string | null;
+          created_at?: string;
+          cycle_id?: string;
+          discarded_at?: string | null;
+          entered_by?: string;
+          gross_asset_value?: number;
+          gross_net_asset_value?: number;
+          holdings_value?: number;
+          id?: string;
+          liabilities?: number;
+          notes?: string | null;
+          other_assets?: number;
+          source?: string;
+          status?: Database['public']['Enums']['valuation_status'];
+          superseded_at?: string | null;
+          superseded_by?: string | null;
+          updated_at?: string;
+          valuation_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'portfolio_valuations_approved_by_fkey';
+            columns: ['approved_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'portfolio_valuations_corrects_valuation_id_fkey';
+            columns: ['corrects_valuation_id'];
+            isOneToOne: false;
+            referencedRelation: 'portfolio_valuations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'portfolio_valuations_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_overview';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'portfolio_valuations_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_unit_summary';
+            referencedColumns: ['cycle_id'];
+          },
+          {
+            foreignKeyName: 'portfolio_valuations_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'investment_cycles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'portfolio_valuations_entered_by_fkey';
+            columns: ['entered_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'portfolio_valuations_superseded_by_fkey';
+            columns: ['superseded_by'];
+            isOneToOne: false;
+            referencedRelation: 'portfolio_valuations';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       profiles: {
         Row: {
           created_at: string;
@@ -648,6 +820,10 @@ export type Database = {
         };
         Returns: string;
       };
+      admin_approve_valuation: {
+        Args: { p_reason: string; p_valuation_id: string };
+        Returns: undefined;
+      };
       admin_cancel_fee_terms: {
         Args: { p_reason: string; p_terms_id: string };
         Returns: undefined;
@@ -662,6 +838,10 @@ export type Database = {
           p_start_date: string;
         };
         Returns: string;
+      };
+      admin_discard_valuation_draft: {
+        Args: { p_reason: string; p_valuation_id: string };
+        Returns: undefined;
       };
       admin_preview_verification: {
         Args: { p_contribution_id: string };
@@ -691,6 +871,20 @@ export type Database = {
       admin_reverse_contribution: {
         Args: { p_contribution_id: string; p_reason: string };
         Returns: undefined;
+      };
+      admin_save_valuation_draft: {
+        Args: {
+          p_cash_balance: string;
+          p_corrects_id?: string;
+          p_cycle_id: string;
+          p_items: Json;
+          p_liabilities: string;
+          p_notes: string;
+          p_other_assets: string;
+          p_valuation_at: string;
+          p_valuation_id: string;
+        };
+        Returns: string;
       };
       admin_set_cycle_status: {
         Args: {
@@ -744,6 +938,7 @@ export type Database = {
       contribution_status: 'pending' | 'verified' | 'rejected' | 'reversed';
       cycle_status: 'draft' | 'open' | 'active' | 'closed' | 'settled';
       profile_status: 'active' | 'inactive';
+      valuation_status: 'draft' | 'approved' | 'superseded' | 'discarded';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -870,6 +1065,7 @@ export const Constants = {
       contribution_status: ['pending', 'verified', 'rejected', 'reversed'],
       cycle_status: ['draft', 'open', 'active', 'closed', 'settled'],
       profile_status: ['active', 'inactive'],
+      valuation_status: ['draft', 'approved', 'superseded', 'discarded'],
     },
   },
 } as const;
