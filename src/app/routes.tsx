@@ -22,6 +22,7 @@ import { ContributionsPage } from '@/features/contributions/pages/ContributionsP
 import { CycleDetailPage } from '@/features/cycles/pages/CycleDetailPage';
 import { ProfitSharingPage } from '@/features/fees/pages/ProfitSharingPage';
 import { NavPage } from '@/features/nav/pages/NavPage';
+import { AdminOverviewPage } from '@/features/overview/pages/AdminOverviewPage';
 import { NavSnapshotPage } from '@/features/nav/pages/NavSnapshotPage';
 import { PortfolioPage } from '@/features/portfolio/pages/PortfolioPage';
 import { ValuationDetailPage } from '@/features/portfolio/pages/ValuationDetailPage';
@@ -30,6 +31,7 @@ import { CyclesPage } from '@/features/cycles/pages/CyclesPage';
 
 /** Admin sections that have a real screen; the rest render a placeholder until their module. */
 const ADMIN_PAGES: Partial<Record<string, ReactElement>> = {
+  overview: <AdminOverviewPage />,
   clients: <ClientsPage />,
   cycles: <CyclesPage />,
   contributions: <ContributionsPage />,

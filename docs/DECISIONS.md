@@ -15,6 +15,18 @@ Approved by the product owner on 12 Nov 2026 (Module 0 plan review). All account
 | H   | **Module order.** Schema is introduced per feature module; Admin Overview moved after the NAV/fee modules so it uses real seeded data.                                                                                                                                                                         | Plan         |
 | I   | **Supabase environment.** Use the product owner's hosted Supabase project.                                                                                                                                                                                                                                     | Module 3     |
 
+## Module 11 engineering choices
+
+- **Admin overview is per cycle** (defaults to the active/open cycle; selector in the URL).
+- **Unrealised P/L** = Σ lot gross value − Σ lot contributed capital at the **latest published NAV**, using the
+  server's per-lot figures so capital and value refer to the same lots and as-of time; "after fee" uses lot net
+  values. Shown only once a NAV is published.
+- **"Needs your attention"** lists pending contributions, valuation drafts and the NAV draft for the cycle.
+- **Recent activity** is the latest audit-log entries across all entity types, described with each feature's
+  own wording and linked to the entity.
+- **First-run checklist** (client → cycle → open → contribution → valuation → NAV) shows until a NAV is published.
+- No schema changes.
+
 ## Module 10 — performance-fee model `per_lot_hwm_v1` (approved 12 Nov 2026, demo only)
 
 - **Per contribution lot, at each NAV snapshot:** eligible profit per unit = max(0, gross NAV − lot HWM);
