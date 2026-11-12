@@ -79,7 +79,9 @@ describe('ClientLayout', () => {
   it('marks the active client tab', async () => {
     renderRoute('/client/statements');
     await screen.findByRole('heading', { level: 1, name: 'Statements' });
-    const navs = screen.getAllByRole('navigation', { name: 'Client' });
+    // Desktop tabs and the mobile tab bar (distinct landmark labels).
+    const navs = screen.getAllByRole('navigation', { name: /^Client/ });
+    expect(navs).toHaveLength(2);
     for (const nav of navs) {
       expect(within(nav).getByRole('link', { name: /Statements/ })).toHaveAttribute('aria-current', 'page');
     }

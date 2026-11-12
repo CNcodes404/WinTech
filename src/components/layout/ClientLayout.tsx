@@ -70,7 +70,7 @@ export function ClientLayout() {
 
       {/* Mobile bottom tab bar */}
       <nav
-        aria-label="Client"
+        aria-label="Client (mobile)"
         className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden print:hidden"
       >
         <ul className="grid grid-cols-5">

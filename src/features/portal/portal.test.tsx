@@ -292,7 +292,7 @@ describe('forced password change', () => {
 
     const { user, router } = renderRoute('/client/statements');
     await waitFor(() => expect(router.state.location.pathname).toBe('/change-password'));
-    expect(screen.queryByRole('navigation', { name: 'Client' })).toBeNull();
+    expect(screen.queryByRole('navigation', { name: /^Client/ })).toBeNull();
 
     await user.type(await screen.findByLabelText(/^New password/), 'MyOwnPass2027');
     await user.type(screen.getByLabelText('Confirm new password'), 'MyOwnPass2027');
