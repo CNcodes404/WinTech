@@ -44,7 +44,7 @@ npx supabase db query --remote -f supabase/tests/fees.test.sql
 npx supabase db query --remote -f supabase/tests/client_portal.test.sql
 # Expected: ERROR ... ALL_CLIENT_PORTAL_TESTS_PASSED (13 checks)
 npx supabase db query --remote -f supabase/tests/reset.test.sql
-# Expected: ERROR ... ALL_RESET_TESTS_PASSED (8 checks)
+# Expected: ERROR ... ALL_RESET_TESTS_PASSED (9 checks)
 npx supabase db advisors --remote --type security
 ```
 

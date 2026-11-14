@@ -14,7 +14,7 @@ dashboard settings for the project owner.
 
 | Check                                                | Result                                                                                 |
 | ---------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `npm run test:db` — 9 suites, rollback-only, live DB | **175 / 175 checks pass**                                                              |
+| `npm run test:db` — 9 suites, rollback-only, live DB | **176 / 176 checks pass**                                                              |
 | `supabase/scripts/security_posture.sql`              | Clean (see table below)                                                                |
 | Supabase security advisor                            | Only accepted findings (below)                                                         |
 | Live E2E as demo client (real Auth API)              | Own profile only; portal data correct; direct table read → 0 rows; admin RPC → **403** |

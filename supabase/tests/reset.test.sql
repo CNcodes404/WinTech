@@ -136,6 +136,18 @@ begin
   if v_cycle is null then raise exception 'TEST FAILED: could not create a cycle after reset'; end if;
   v_checks := v_checks + 1;
 
+  -- API sessions load pg-safeupdate, which rejects DELETE/UPDATE without WHERE. This suite can't load
+  -- it, so check statically: no public function may contain such a statement.
+  execute 'set local role postgres';
+  select count(*) into v_n
+    from pg_proc p join pg_namespace n on n.oid = p.pronamespace,
+         lateral regexp_split_to_table(p.prosrc, ';') stmt
+   where n.nspname = 'public'
+     and stmt ~* '(^|\s)(delete\s+from\s|update\s+public\.\w+\s+set\s)'
+     and stmt !~* '\swhere\s';
+  if v_n <> 0 then raise exception 'TEST FAILED: % DELETE/UPDATE without WHERE (blocked by safeupdate)', v_n; end if;
+  v_checks := v_checks + 1;
+
   raise exception 'ALL_RESET_TESTS_PASSED (% checks)', v_checks;
 end;
 $$;
