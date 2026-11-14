@@ -61,6 +61,8 @@ export interface VerificationPreview {
   units: string;
   fee_rate: string;
   fee_version: number;
+  /** As-of time of the published NAV used; null = the cycle's base NAV (no earlier NAV). */
+  nav_date: string | null;
 }
 
 export interface CycleUnitSummary {

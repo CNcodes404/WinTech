@@ -14,7 +14,7 @@ dashboard settings for the project owner.
 
 | Check                                                | Result                                                                                 |
 | ---------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `npm run test:db` — 9 suites, rollback-only, live DB | **176 / 176 checks pass**                                                              |
+| `npm run test:db` — 9 suites, rollback-only, live DB | **181 / 181 checks pass**                                                              |
 | `supabase/scripts/security_posture.sql`              | Clean (see table below)                                                                |
 | Supabase security advisor                            | Only accepted findings (below)                                                         |
 | Live E2E as demo client (real Auth API)              | Own profile only; portal data correct; direct table read → 0 rows; admin RPC → **403** |
@@ -88,3 +88,14 @@ mandatory reason, server-side kill switch `private.app_config.demo_reset_enabled
 API), atomic execution (guards disabled and re-enabled in the same transaction; verified none left disabled),
 users and account history never touched, and a `maintenance.data_reset` audit entry with counts.
 **Risk accepted for the demo; set the switch to false before any real use** (see `docs/DEPLOYMENT.md`).
+
+## Addendum — Module 15 fee model (14 Nov 2026)
+
+Migration `20261115010000_fund_level_fees.sql`. The client API was rebuilt so that **no client function
+returns performance-fee data**: `client_my_cycles`, `client_my_contributions`, `client_nav_history` and
+`client_my_activity` return only the NAV after the fee, value, profit, admin fee and final profit; the
+per-lot `client_my_lot_values` was removed. `client_portal.test.sql` checks the result columns of every
+`client_*` function against a deny-list (performance, fee rate/amount, gross, HWM), and the frontend tests
+assert the words never appear in the portal. The new admin view `client_position_report` is
+`security_invoker` (admin-only through base-table RLS); `admin_set_admin_fee` is admin-only, validated and
+audited (`cycle.admin_fee_changed`). The security posture check is unchanged (clean).

@@ -1,6 +1,6 @@
 import type { AuditEntry } from '@/features/audit/api';
 import { jsonObject } from '@/features/audit/api';
-import { formatDate, formatDateTime, formatNav, formatRateAsPercent } from '@/lib/format';
+import { formatDate, formatDateTime, formatINR, formatNav, formatRateAsPercent } from '@/lib/format';
 import type { FeeTerms, FeeTermsState } from './types';
 import { STATUS_LABEL, type CycleStatus } from './types';
 
@@ -27,7 +27,11 @@ export function describeCycleEntry(e: Pick<AuditEntry, 'action' | 'before_data' 
   const after = jsonObject(e.after_data);
   switch (e.action) {
     case 'cycle.created':
-      return `Cycle created (base NAV ${formatNav(String(after.base_nav ?? ''))})`;
+      return after.admin_fee_amount === undefined
+        ? `Cycle created (base NAV ${formatNav(String(after.base_nav ?? ''))})`
+        : `Cycle created (base NAV ${formatNav(String(after.base_nav ?? ''))}, admin fee ${formatINR(String(after.admin_fee_amount))})`;
+    case 'cycle.admin_fee_changed':
+      return `Admin fee changed from ${formatINR(String(before.admin_fee_amount ?? ''))} to ${formatINR(String(after.admin_fee_amount ?? ''))} per client`;
     case 'cycle.status_changed':
       return `Status changed from ${STATUS_LABEL[before.status as CycleStatus] ?? before.status} to ${
         STATUS_LABEL[after.status as CycleStatus] ?? after.status

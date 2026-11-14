@@ -154,19 +154,6 @@ begin
   perform public.admin_update_cycle(v_cycle, 'Test Cycle FY27', 'Updated', current_date, current_date + 210, 105.5, 'Extend end date');
   v_checks := v_checks + 1;
 
-  perform public.admin_set_cycle_status(v_cycle, 'active', 'Capital deployed');
-
-  v_raised := false;
-  begin
-    perform public.admin_update_cycle(v_cycle, 'Test Cycle FY27', 'Updated', current_date, current_date + 220, 105.5, 'Extend again');
-  exception when check_violation then v_raised := true;
-  end;
-  if not v_raised then raise exception 'TEST FAILED: dates changed while active'; end if;
-  v_checks := v_checks + 1;
-
-  -- Name/description still editable while active
-  perform public.admin_update_cycle(v_cycle, 'Test Cycle FY27 (Main)', 'Renamed', current_date, current_date + 210, 105.5, 'Clarify the name');
-  v_checks := v_checks + 1;
 
   -- ---------------------------------------------------------------- fee terms
   v_raised := false;
@@ -244,6 +231,63 @@ begin
   select count(*) into v_n from public.audit_logs
    where entity_id = v_cycle and action in ('fee_terms.created', 'fee_terms.cancelled');
   if v_n <> 4 then raise exception 'TEST FAILED: fee term audit rows = %, expected 4', v_n; end if;
+  v_checks := v_checks + 1;
+
+  -- Module 15: a cycle cannot start trading while a fee change is still scheduled.
+  v_raised := false;
+  begin
+    perform public.admin_set_cycle_status(v_cycle, 'active', 'Start with change pending');
+  exception when check_violation then v_raised := true;
+  end;
+  if not v_raised then raise exception 'TEST FAILED: activated with a scheduled fee change'; end if;
+  perform public.admin_cancel_fee_terms(
+    (select id from public.cycle_fee_terms where cycle_id = v_cycle and version = 3), 'Keep current rate');
+  v_checks := v_checks + 1;
+
+  perform public.admin_set_cycle_status(v_cycle, 'active', 'Capital deployed');
+
+  v_raised := false;
+  begin
+    perform public.admin_update_cycle(v_cycle, 'Test Cycle FY27', 'Updated', current_date, current_date + 220, 105.5, 'Extend again');
+  exception when check_violation then v_raised := true;
+  end;
+  if not v_raised then raise exception 'TEST FAILED: dates changed while active'; end if;
+  v_checks := v_checks + 1;
+
+  -- Name/description still editable while active
+  perform public.admin_update_cycle(v_cycle, 'Test Cycle FY27 (Main)', 'Renamed', current_date, current_date + 210, 105.5, 'Clarify the name');
+  v_checks := v_checks + 1;
+
+  -- Module 15: the performance fee is locked once active.
+  v_raised := false;
+  begin
+    perform public.admin_add_fee_terms(v_cycle, 0.1, null, 'Change while trading');
+  exception when check_violation then v_raised := true;
+  end;
+  if not v_raised then raise exception 'TEST FAILED: fee change while active accepted'; end if;
+  v_checks := v_checks + 1;
+
+  -- Admin fee: default 1000, editable while active with a reason, audited.
+  if (select admin_fee_amount from public.cycle_overview where id = v_cycle) <> 1000 then
+    raise exception 'TEST FAILED: default admin fee is not 1000';
+  end if;
+  v_raised := false;
+  begin
+    perform public.admin_set_admin_fee(v_cycle, -1, 'Negative fee');
+  exception when invalid_parameter_value then v_raised := true;
+  end;
+  if not v_raised then raise exception 'TEST FAILED: negative admin fee accepted'; end if;
+  v_raised := false;
+  begin
+    perform public.admin_set_admin_fee(v_cycle, 1500.555, 'Too precise');
+  exception when invalid_parameter_value then v_raised := true;
+  end;
+  if not v_raised then raise exception 'TEST FAILED: 3-dp admin fee accepted'; end if;
+  perform public.admin_set_admin_fee(v_cycle, 1500, 'Higher admin cost this year');
+  select count(*) into v_n from public.audit_logs
+   where entity_id = v_cycle and action = 'cycle.admin_fee_changed' and reason = 'Higher admin cost this year'
+     and after_data ->> 'admin_fee_amount' = '1500.00' and before_data ->> 'admin_fee_amount' = '1000.00';
+  if v_n <> 1 then raise exception 'TEST FAILED: admin fee change not audited'; end if;
   v_checks := v_checks + 1;
 
   -- Close: no further fee changes, no edits, no reopening.

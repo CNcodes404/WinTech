@@ -8,8 +8,8 @@ export function PortalDisclaimer() {
       <span>
         Figures are <strong className="font-medium text-ink">indicative</strong>, based on manually entered
         demo valuations, and are <strong className="font-medium text-ink">not live market data</strong>. The
-        performance fee shown is accrued for information only; nothing has been deducted or paid. No returns
-        are guaranteed.
+        admin fee is shown for information; nothing has been deducted or paid by this app. No returns are
+        guaranteed.
       </span>
     </p>
   );

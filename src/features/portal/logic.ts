@@ -1,37 +1,49 @@
-import { Decimal, tryToDecimal } from '@/lib/finance';
+import type { Decimal } from '@/lib/finance';
+import { roundMoney, toDecimal, tryToDecimal } from '@/lib/finance';
 import { formatINR, formatNav, formatUnits } from '@/lib/format';
-import type { ActivityKind, ClientActivity, ClientCycle } from './api';
+import type { ActivityKind, ClientActivity, ClientContribution, ClientCycle } from './api';
 
-export interface ClientPosition {
-  /** Capital of the lots valued at the latest NAV. */
-  contributed: Decimal | null;
-  netValue: Decimal | null;
-  pnl: Decimal | null;
-  pnlReturn: Decimal | null;
-  /** The client's own net value per unit (net value ÷ valued units). */
-  netNavPerUnit: Decimal | null;
-  /** True when some verified money has not yet been valued by a published NAV. */
-  hasUnvaluedLots: boolean;
+/** Return on invested money as a fraction (0.05 = +5%); null when nothing is invested. */
+export function returnOn(amount: string, invested: string): Decimal | null {
+  const a = tryToDecimal(amount);
+  const i = tryToDecimal(invested);
+  if (!a || !i || i.isZero()) return null;
+  return a.dividedBy(i).toDecimalPlaces(6);
 }
 
-/** P/L compares the same lots at the same as-of time (server figures; display-only maths). */
-export function clientPosition(c: ClientCycle, valuedUnits: Decimal | null): ClientPosition {
-  const contributed = tryToDecimal(c.lots_contributed ?? '');
-  const netValue = tryToDecimal(c.net_value ?? '');
-  const pnl = contributed && netValue ? netValue.minus(contributed) : null;
-  const total = tryToDecimal(c.net_contributed) ?? new Decimal(0);
-  return {
-    contributed,
-    netValue,
-    pnl,
-    pnlReturn:
-      pnl && contributed && !contributed.isZero() ? pnl.dividedBy(contributed).toDecimalPlaces(6) : null,
-    netNavPerUnit:
-      netValue && valuedUnits && valuedUnits.greaterThan(0)
-        ? netValue.dividedBy(valuedUnits).toDecimalPlaces(8)
-        : null,
-    hasUnvaluedLots: !contributed ? total.greaterThan(0) : !total.equals(contributed),
-  };
+export interface HoldingRow {
+  id: string;
+  received_at: string;
+  amount: Decimal;
+  entryNav: string;
+  units: Decimal;
+  value: Decimal;
+  profit: Decimal;
+}
+
+/**
+ * Each verified contribution valued at the cycle's current NAV (display only). Per-contribution values
+ * are rounded separately, so their sum can differ from the cycle total by a few paise.
+ */
+export function holdingRows(contributions: ClientContribution[], c: ClientCycle): HoldingRow[] {
+  const nav = toDecimal(c.latest_nav ?? c.base_nav);
+  return contributions
+    .filter((x) => x.cycle_id === c.cycle_id && x.status === 'verified' && x.units_issued && x.applicable_nav)
+    .sort((a, b) => a.received_at.localeCompare(b.received_at))
+    .map((x) => {
+      const units = toDecimal(x.units_issued!);
+      const amount = toDecimal(x.amount);
+      const value = roundMoney(units.times(nav));
+      return {
+        id: x.id,
+        received_at: x.received_at,
+        amount,
+        entryNav: x.applicable_nav!,
+        units,
+        value,
+        profit: value.minus(amount),
+      };
+    });
 }
 
 const KIND_TEXT: Record<ActivityKind, string> = {
@@ -53,7 +65,7 @@ export function describeClientActivity(a: ClientActivity): string {
     case 'contribution_reversed':
       return `${base}: ${formatUnits(a.units)} units`;
     case 'nav_published':
-      return `${base}: ${formatNav(a.nav)} per unit (gross)`;
+      return `${base}: ${formatNav(a.nav)} per unit`;
     default:
       return base;
   }

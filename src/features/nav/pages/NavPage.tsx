@@ -19,6 +19,7 @@ const NavHistoryChart = lazy(() =>
   import('../components/NavHistoryChart').then((m) => ({ default: m.NavHistoryChart })),
 );
 import { NavStatusBadge } from '../components/NavStatusBadge';
+import { clientNav } from '../types';
 import { chartPoints, navChange } from '../logic';
 import { useNavSnapshots } from '../queries';
 
@@ -37,14 +38,14 @@ export function NavPage() {
 
   const latest = snapshots.data?.find((s) => s.status === 'published');
   const draft = snapshots.data?.find((s) => s.status === 'draft');
-  const change = latest && cycle ? navChange(latest.gross_nav_per_unit, cycle.base_nav) : null;
+  const change = latest && cycle ? navChange(clientNav(latest), cycle.base_nav) : null;
   const points = chartPoints(snapshots.data ?? []);
 
   return (
     <>
       <PageHeader
         title="NAV & Performance"
-        description="Gross NAV per unit, calculated from approved manual valuations. Not real-time market pricing."
+        description="NAV per unit after the performance fee (what clients see), calculated once a day from approved manual valuations. Not real-time market pricing."
         badges={<DemoBadge kind="manual" />}
         actions={
           cycle &&
@@ -98,8 +99,8 @@ export function NavPage() {
               role="status"
               className="flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] bg-warning-soft px-3 py-2 text-sm text-warning"
             >
-              A draft NAV of <span className="num font-medium">{formatNav(draft.gross_nav_per_unit)}</span> is
-              waiting to be reviewed.
+              A draft NAV of <span className="num font-medium">{formatNav(clientNav(draft))}</span> is waiting
+              to be reviewed.
               <Link to={`/admin/nav/snapshots/${draft.id}`} className="font-medium underline">
                 Review and publish
               </Link>
@@ -108,10 +109,10 @@ export function NavPage() {
 
           <section aria-label="Latest published NAV" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard
-              label="Gross NAV per unit"
-              term="grossNav"
+              label="NAV per unit"
+              term="netNav"
               loading={snapshots.isPending}
-              value={latest ? formatNav(latest.gross_nav_per_unit) : formatNav(cycle.base_nav)}
+              value={latest ? formatNav(clientNav(latest)) : formatNav(cycle.base_nav)}
               meta={latest ? `as of ${formatDateTime(latest.nav_date)}` : 'Base NAV (nothing published yet)'}
               trend={
                 change && latest
@@ -135,22 +136,22 @@ export function NavPage() {
               value={latest ? formatUnits(latest.total_outstanding_units, { decimals: 4 }) : '—'}
             />
             <StatCard
-              label="Net NAV per unit"
-              term="netNav"
+              label="Market NAV per unit"
+              term="grossNav"
               loading={snapshots.isPending}
-              value={latest?.net_nav_per_unit ? formatNav(latest.net_nav_per_unit) : '—'}
+              value={latest ? formatNav(latest.gross_nav_per_unit) : '—'}
               meta={
                 latest?.performance_fee_amount
-                  ? `After ${formatINR(latest.performance_fee_amount)} indicative fee (weighted average)`
-                  : 'After performance fee'
+                  ? `Before the ${formatINR(latest.performance_fee_amount)} performance fee`
+                  : 'Before performance fee'
               }
             />
           </section>
 
           <Card>
             <CardHeader
-              title="Gross NAV per unit"
-              description="Published values only. Hover a point for its exact value."
+              title="NAV per unit"
+              description="Published values (after performance fee). Hover a point for its exact value."
             />
             <div className="px-2 py-4 sm:px-4">
               {snapshots.isPending ? (
@@ -191,7 +192,8 @@ export function NavPage() {
                     <TH>Status</TH>
                     <TH numeric>Net asset value</TH>
                     <TH numeric>Outstanding units</TH>
-                    <TH numeric>Gross NAV / unit</TH>
+                    <TH numeric>Market NAV</TH>
+                    <TH numeric>NAV / unit</TH>
                     <TH>
                       <span className="sr-only">Open</span>
                     </TH>
@@ -210,8 +212,11 @@ export function NavPage() {
                       </TD>
                       <TD numeric>{formatINR(s.gross_net_asset_value)}</TD>
                       <TD numeric>{formatUnits(s.total_outstanding_units, { decimals: 4 })}</TD>
-                      <TD numeric className="font-medium">
+                      <TD numeric className="text-muted">
                         {formatNav(s.gross_nav_per_unit)}
+                      </TD>
+                      <TD numeric className="font-medium">
+                        {formatNav(clientNav(s))}
                       </TD>
                       <TD align="right">
                         <Link

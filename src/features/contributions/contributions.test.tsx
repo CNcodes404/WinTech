@@ -89,7 +89,7 @@ describe('form rules', () => {
         before_data: null,
         after_data: { units_issued: '1363.63636363', applicable_nav: '110.00000000', fee_rate: '0.200000' },
       }),
-    ).toBe('Verified: 1,363.63636363 units issued at NAV ₹110.00000000, fee rate 20.00% locked');
+    ).toBe('Verified: 1,363.63636363 units issued at NAV ₹110.00000000');
   });
 });
 
@@ -174,7 +174,13 @@ describe('ContributionDetailPage', () => {
       if (fn === 'admin_preview_verification')
         return {
           data: [
-            { applicable_nav: '110.00000000', units: '1363.63636363', fee_rate: '0.200000', fee_version: 1 },
+            {
+              applicable_nav: '110.00000000',
+              units: '1363.63636363',
+              fee_rate: '0.200000',
+              fee_version: 1,
+              nav_date: '2026-11-11T10:00:00Z',
+            },
           ],
           error: null,
         };
@@ -196,7 +202,10 @@ describe('ContributionDetailPage', () => {
     const dialog = await screen.findByRole('dialog', { name: /Verify contribution/ });
     expect(await within(dialog).findByText('1,363.63636363')).toBeInTheDocument();
     expect(within(dialog).getByText('₹110.00000000')).toBeInTheDocument();
-    expect(within(dialog).getByText(/20\.00% · v1/)).toBeInTheDocument();
+    // The NAV date used is shown (previous-day rule); the performance fee is not part of verification.
+    expect(within(dialog).getByText(/Published NAV as of 11 Nov 2026/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/gets the NAV published for the day before/)).toBeInTheDocument();
+    expect(within(dialog).queryByText(/20\.00%/)).toBeNull();
 
     await user.click(within(dialog).getByRole('button', { name: 'Verify & issue units' }));
     expect(supabaseMock.rpc).not.toHaveBeenCalledWith('admin_verify_contribution', expect.anything());
@@ -217,7 +226,15 @@ describe('ContributionDetailPage', () => {
     supabaseMock.rpc.mockImplementation(async (fn: string) => {
       if (fn === 'admin_preview_verification')
         return {
-          data: [{ applicable_nav: '110', units: '1363.63636363', fee_rate: '0.2', fee_version: 1 }],
+          data: [
+            {
+              applicable_nav: '110',
+              units: '1363.63636363',
+              fee_rate: '0.2',
+              fee_version: 1,
+              nav_date: null,
+            },
+          ],
           error: null,
         };
       return {
@@ -252,7 +269,7 @@ describe('ContributionDetailPage', () => {
     );
   });
 
-  it('shows the locked lot details and reverses a verified contribution', async () => {
+  it('shows the issued units and reverses a verified contribution', async () => {
     mockRegister(
       row({
         status: 'verified',
@@ -265,7 +282,7 @@ describe('ContributionDetailPage', () => {
     );
     const { user } = renderRoute(`/admin/contributions/${CONTRIB_ID}`);
     expect(await screen.findByText('1,363.63636363')).toBeInTheDocument();
-    expect(screen.getByText('20.00%')).toBeInTheDocument();
+    expect(screen.getByText('₹110.00000000')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Verify & issue units' })).toBeNull();
 
     await user.click(screen.getByRole('button', { name: 'Reverse' }));

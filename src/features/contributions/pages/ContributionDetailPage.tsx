@@ -12,7 +12,7 @@ import { EmptyState, ErrorState } from '@/components/ui/States';
 import { useToast } from '@/components/ui/toast-context';
 import { InfoTip } from '@/components/ui/Tooltip';
 import { EntityHistory } from '@/features/audit/EntityHistory';
-import { formatDateTime, formatINR, formatNav, formatRateAsPercent, formatUnits } from '@/lib/format';
+import { formatDateTime, formatINR, formatNav, formatUnits } from '@/lib/format';
 import { isUuid } from '@/lib/utils/uuid';
 import { ContributionStatusBadge } from '../components/ContributionStatusBadge';
 import { VerifyDialog } from '../components/VerifyDialog';
@@ -181,12 +181,6 @@ export function ContributionDetailPage() {
                   </Field>
                   <Field label="Units issued" term="units">
                     <span className="num">{formatUnits(c.units_issued)}</span>
-                  </Field>
-                  <Field label="Fee rate (locked for this lot)" term="performanceFee">
-                    <span className="num">{formatRateAsPercent(c.locked_fee_rate)}</span>
-                  </Field>
-                  <Field label="Starting high-water mark" term="hwm">
-                    <span className="num">{formatNav(c.reference_hwm, { decimals: 8 })}</span>
                   </Field>
                   <Field label="Verified">
                     <span className="num">{formatDateTime(c.verified_at)}</span>

@@ -6,21 +6,19 @@ import { TableSkeleton } from '@/components/ui/Skeleton';
 import { ErrorState } from '@/components/ui/States';
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table';
 import { useAuth } from '@/features/auth/auth-context';
-import { Decimal, toDecimal } from '@/lib/finance';
 import {
   formatDate,
   formatDateTime,
   formatINR,
   formatNav,
-  formatRateAsPercent,
   formatSignedINR,
   formatUnits,
   isoDateInIST,
 } from '@/lib/format';
-import { useMyContributions, useMyLots, useSelectedClientCycle } from '../api';
+import { useMyContributions, useSelectedClientCycle } from '../api';
 import { PortalCycleBar } from '../components/PortalCycleBar';
 import { PortalEmpty } from '../components/PortalEmpty';
-import { clientPosition, downloadCsv, toCsv } from '../logic';
+import { downloadCsv, holdingRows, toCsv } from '../logic';
 
 const STATUS_TEXT = {
   pending: 'Pending',
@@ -34,7 +32,6 @@ const METHOD_TEXT = { upi: 'UPI', bank_transfer: 'Bank transfer', cheque: 'Chequ
 export function StatementsPage() {
   const { profile } = useAuth();
   const { cycles, cycle, select } = useSelectedClientCycle();
-  const lots = useMyLots(cycle?.cycle_id ?? '');
   const contributions = useMyContributions();
 
   if (cycles.isPending || contributions.isPending) {
@@ -66,40 +63,46 @@ export function StatementsPage() {
     );
   }
 
-  const lotRows = lots.data ?? [];
+  const rows = holdingRows(contributions.data, cycle);
   const myContributions = contributions.data.filter((c) => c.cycle_id === cycle.cycle_id);
-  const valuedUnits = lotRows.reduce((s, l) => s.plus(toDecimal(l.units)), new Decimal(0));
-  const pos = clientPosition(cycle, valuedUnits);
   const generated = new Date();
-  const asOf = lotRows[0]?.nav_date ?? cycle.latest_nav_date;
+  const asOf = cycle.latest_nav_date;
+  const nav = cycle.latest_nav ?? cycle.base_nav;
 
   function exportCsv() {
-    const lotsCsv = toCsv(
+    const summaryCsv = toCsv(
       [
-        'Contribution date',
-        'Amount (INR)',
-        'Entry NAV',
-        'Units',
-        'Fee rate',
-        'NAV date',
-        'Gross NAV',
-        'Gross value (INR)',
-        'Indicative fee (INR)',
-        'Net value (INR)',
-        'Loss to recover (INR)',
+        'NAV per unit',
+        'Units held',
+        'Total invested (INR)',
+        'Current value (INR)',
+        'Profit (INR)',
+        'Admin fee (INR)',
+        'Final profit (INR)',
+        'Value after admin fee (INR)',
       ],
-      lotRows.map((l) => [
-        l.received_at,
-        l.amount,
-        l.entry_nav,
-        l.units,
-        l.fee_rate,
-        l.nav_date,
-        l.gross_nav_per_unit,
-        l.gross_value,
-        l.fee_amount,
-        l.net_value,
-        l.loss_to_recover,
+      [
+        [
+          nav,
+          cycle!.units,
+          cycle!.net_contributed,
+          cycle!.current_value,
+          cycle!.profit,
+          cycle!.admin_fee,
+          cycle!.final_profit,
+          cycle!.final_value,
+        ],
+      ],
+    );
+    const holdingsCsv = toCsv(
+      ['Contribution date', 'Amount (INR)', 'NAV applied', 'Units', 'Value now (INR)', 'Profit (INR)'],
+      rows.map((r) => [
+        r.received_at,
+        r.amount.toFixed(2),
+        r.entryNav,
+        r.units.toFixed(8),
+        r.value.toFixed(2),
+        r.profit.toFixed(2),
       ]),
     );
     const contribCsv = toCsv(
@@ -129,7 +132,7 @@ export function StatementsPage() {
     );
     downloadCsv(
       `wintech-statement-${cycle!.cycle_name.replace(/[^A-Za-z0-9]+/g, '-').toLowerCase()}-${isoDateInIST(generated)}.csv`,
-      `${header}\r\nLots\r\n${lotsCsv}\r\nContributions\r\n${contribCsv}`,
+      `${header}\r\nSummary\r\n${summaryCsv}\r\nHoldings\r\n${holdingsCsv}\r\nContributions\r\n${contribCsv}`,
     );
   }
 
@@ -177,19 +180,16 @@ export function StatementsPage() {
               <h3 id="st-summary" className="text-sm">
                 Summary
               </h3>
-              <dl className="mt-2 grid gap-3 text-sm sm:grid-cols-3">
+              <dl className="mt-2 grid gap-3 text-sm sm:grid-cols-4">
                 {[
-                  ['Total contributed', formatINR(cycle.net_contributed)],
+                  ['Total invested', formatINR(cycle.net_contributed)],
                   ['Units held', formatUnits(cycle.units)],
-                  [
-                    'Latest NAV per unit',
-                    formatNav(cycle.latest_gross_nav ?? cycle.base_nav, { decimals: 8 }),
-                  ],
-                  ['Indicative gross value', formatINR(cycle.gross_value)],
-                  ['Indicative performance fee', formatINR(cycle.fee_amount ?? '0')],
-                  ['Indicative net value', formatINR(cycle.net_value)],
-                  ['Net profit / loss', pos.pnl ? formatSignedINR(pos.pnl) : '—'],
-                  ['Current fee rate', formatRateAsPercent(cycle.current_fee_rate)],
+                  ['NAV per unit', formatNav(nav, { decimals: 8 })],
+                  ['Current value', formatINR(cycle.current_value)],
+                  ['Profit', formatSignedINR(cycle.profit)],
+                  ['Admin fee', formatINR(cycle.admin_fee)],
+                  ['Final profit', formatSignedINR(cycle.final_profit)],
+                  ['Value after admin fee', formatINR(cycle.final_value)],
                 ].map(([k, v]) => (
                   <div key={k}>
                     <dt className="text-muted">{k}</dt>
@@ -201,35 +201,31 @@ export function StatementsPage() {
 
             <section aria-labelledby="st-lots">
               <h3 id="st-lots" className="mb-2 text-sm">
-                Contribution lots
+                Holdings
               </h3>
-              {lotRows.length === 0 ? (
-                <p className="text-sm text-muted">No lots have been valued yet.</p>
+              {rows.length === 0 ? (
+                <p className="text-sm text-muted">No verified contributions yet.</p>
               ) : (
-                <Table caption="Contribution lots" minWidth={760}>
+                <Table caption="Holdings" minWidth={680}>
                   <THead>
                     <tr>
                       <TH>Date</TH>
                       <TH numeric>Amount</TH>
-                      <TH numeric>Entry NAV</TH>
+                      <TH numeric>NAV applied</TH>
                       <TH numeric>Units</TH>
-                      <TH numeric>Fee rate</TH>
-                      <TH numeric>Gross value</TH>
-                      <TH numeric>Fee</TH>
-                      <TH numeric>Net value</TH>
+                      <TH numeric>Value now</TH>
+                      <TH numeric>Profit</TH>
                     </tr>
                   </THead>
                   <TBody>
-                    {lotRows.map((l) => (
-                      <TR key={l.contribution_id}>
-                        <TD className="num">{formatDate(l.received_at)}</TD>
-                        <TD numeric>{formatINR(l.amount)}</TD>
-                        <TD numeric>{formatNav(l.entry_nav)}</TD>
-                        <TD numeric>{formatUnits(l.units)}</TD>
-                        <TD numeric>{formatRateAsPercent(l.fee_rate)}</TD>
-                        <TD numeric>{formatINR(l.gross_value)}</TD>
-                        <TD numeric>{formatINR(l.fee_amount)}</TD>
-                        <TD numeric>{formatINR(l.net_value)}</TD>
+                    {rows.map((r) => (
+                      <TR key={r.id}>
+                        <TD className="num">{formatDate(r.received_at)}</TD>
+                        <TD numeric>{formatINR(r.amount)}</TD>
+                        <TD numeric>{formatNav(r.entryNav)}</TD>
+                        <TD numeric>{formatUnits(r.units)}</TD>
+                        <TD numeric>{formatINR(r.value)}</TD>
+                        <TD numeric>{formatSignedINR(r.profit)}</TD>
                       </TR>
                     ))}
                   </TBody>
@@ -268,10 +264,9 @@ export function StatementsPage() {
             </section>
 
             <footer className="border-t border-line pt-4 text-xs text-muted">
-              Indicative figures based on manually entered demo valuations; not live market data. The
-              performance fee is accrued for information only and has not been deducted or paid. No returns
-              are guaranteed. This statement is generated by a prototype and is not an official account
-              statement.
+              Indicative figures based on manually entered demo valuations; not live market data. The admin
+              fee is shown for information and has not been deducted or paid by this app. No returns are
+              guaranteed. This statement is generated by a prototype and is not an official account statement.
             </footer>
           </CardContent>
         </Card>

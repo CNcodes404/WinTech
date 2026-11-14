@@ -7,7 +7,7 @@
 | Finance helpers, formatting, rounding        | Vitest unit tests                                                                | Pass                 |
 | Screens, forms, flows (mocked Supabase)      | Vitest + Testing Library                                                         | Pass                 |
 | Accessibility (11 key screens)               | `tests/a11y.test.tsx` with axe-core (contrast excluded: not computable in jsdom) | No violations        |
-| Database rules, RLS, isolation, immutability | `npm run test:db` (9 suites, 176 checks)                                         | Pass                 |
+| Database rules, RLS, isolation, immutability | `npm run test:db` (9 suites, 181 checks)                                         | Pass                 |
 | Live end-to-end (real login + portal RPC)    | Manual script run during Module 14                                               | Pass                 |
 | Type safety / lint / format                  | `npm run check`                                                                  | Pass                 |
 

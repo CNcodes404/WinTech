@@ -14,9 +14,22 @@ been approved by qualified professionals (see README).
 
 ## Accounting model simplifications (approved demo model)
 
-- Fee method `per_lot_hwm_v1`: each lot's high-water mark is its entry NAV for the whole cycle; no
-  equalisation, no cross-cycle loss carry-forward, no annual HWM reset.
-- Net NAV per unit at cycle level is a weighted average across lots.
+- Fee method `fund_level_v2` (Module 15): the performance fee is taken from the **cycle's total profit**
+  (net asset value − all money invested) and one NAV is published for every client. With money added
+  mid-cycle there is **no equalisation**, so value can shift between clients who joined at different times
+  (for example, a client who joins after a loss shares the fee on the recovery). Accepted by the owner; the
+  client agreement should say so. No high-water mark: a fee accrues whenever the cycle is above the money
+  invested, and falls back to zero on a loss.
+- The **performance fee is not shown to clients** (they see the NAV after it). It must still be disclosed
+  in the client agreement.
+- The **admin fee** is a flat ₹ amount per client per cycle, deducted from the client's figures even with
+  no profit. The current amount is used for live figures (editing it changes every client's figures at once);
+  the amount at cycle close is frozen in the final-fees record.
+- Units are issued at the latest NAV dated **before the day the money was received** (India time). If a
+  day's NAV is published late, money verified in the meantime uses the last earlier NAV (the owner expects
+  NAVs to arrive automatically each evening, so no block was added).
+- NAVs published before Module 15 keep the earlier per-lot method (`per_lot_hwm_v1`) and are shown with it.
+  Erase all data before a demo so every NAV uses the new method.
 - NAV corrections never rewrite units already issued at the corrected NAV.
 - For a **NAV correction**, outstanding units are counted by ledger time; money received before the
   valuation time but verified after it is not included in that past correction.

@@ -65,7 +65,7 @@ begin
   perform public.admin_record_contribution(v_cycle, v_c, 1000, now() - interval '1 hour', 'upi', 'P-5', null);
   perform pg_sleep(0.02);
 
-  -- NAV ₹116 on 1,500 units.
+  -- Market NAV ₹116 on 1,500 units: profit 24,000 − 20% fee 4,800 → client NAV (174000 − 4800) / 1500 = ₹112.80.
   v_val := public.admin_save_valuation_draft(null, v_cycle, clock_timestamp(), '174000', '0', '0', null, '[]');
   perform public.admin_approve_valuation(v_val, 'Demo valuation');
   v_snap := public.admin_calculate_nav(v_val, null);
@@ -88,9 +88,9 @@ begin
   select count(*) into v_n from public.client_my_cycles();
   if v_n <> 1 then raise exception 'TEST FAILED: client A sees % cycles (expected 1)', v_n; end if;
   select * into v_row from public.client_my_cycles();
-  if v_row.units <> '1000.00000000' or v_row.latest_gross_nav <> '116.00000000' or v_row.fee_amount <> '3200.00'
-     or v_row.gross_value <> '116000.00' or v_row.net_value <> '112800.00' or v_row.lots_contributed <> '100000.00'
-     or v_row.current_fee_rate <> '0.200000' then
+  if v_row.units <> '1000.00000000' or v_row.latest_nav <> '112.80000000' or v_row.net_contributed <> '100000.00'
+     or v_row.current_value <> '112800.00' or v_row.profit <> '12800.00' or v_row.admin_fee <> '1000.00'
+     or v_row.final_profit <> '11800.00' or v_row.final_value <> '111800.00' then
     raise exception 'TEST FAILED: client A cycle summary: %', row_to_json(v_row);
   end if;
   v_checks := v_checks + 2;
@@ -103,19 +103,23 @@ begin
   end if;
   v_checks := v_checks + 1;
 
-  select count(*) into v_n from public.client_my_lot_values(v_cycle);
-  if v_n <> 1 then raise exception 'TEST FAILED: client A lots % (expected 1)', v_n; end if;
-  select fee_amount into v_text from public.client_my_lot_values(v_cycle);
-  if v_text <> '3200.00' then raise exception 'TEST FAILED: client A lot fee %', v_text; end if;
+  -- No client function can return performance-fee data (rate, amount, gross NAV, HWM, per-lot fee).
+  execute 'set local role postgres';
+  select count(*) into v_n
+    from pg_proc p join pg_namespace n on n.oid = p.pronamespace, unnest(coalesce(p.proargnames, '{}')) a(name)
+   where n.nspname = 'public' and p.proname like 'client\_%'
+     and a.name ~* '(performance|fee_rate|fee_amount|gross|hwm|loss_to_recover|eligible)';
+  if v_n <> 0 then raise exception 'TEST FAILED: % client function column(s) expose performance-fee data', v_n; end if;
+  execute 'set local role authenticated';
   v_checks := v_checks + 1;
 
   -- A is not in cycle 2: nothing about it.
-  select count(*) into v_n from public.client_my_lot_values(v_cycle2);
-  if v_n <> 0 then raise exception 'TEST FAILED: client A sees lots of a cycle they are not in'; end if;
   select count(*) into v_n from public.client_nav_history(v_cycle2);
   if v_n <> 0 then raise exception 'TEST FAILED: client A sees NAV of a cycle they are not in'; end if;
   select count(*) into v_n from public.client_nav_history(v_cycle);
   if v_n <> 1 then raise exception 'TEST FAILED: client A NAV history %', v_n; end if;
+  select nav_per_unit into v_text from public.client_nav_history(v_cycle);
+  if v_text <> '112.80000000' then raise exception 'TEST FAILED: NAV history should show the client NAV (%)', v_text; end if;
   v_checks := v_checks + 1;
 
   select string_agg(kind || ':' || coalesce(amount, '') , ',') into v_text from public.client_my_activity(50);
@@ -152,10 +156,10 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', v_b, 'role', 'authenticated')::text, true);
   select count(*) into v_n from public.client_my_cycles();
   if v_n <> 2 then raise exception 'TEST FAILED: client B cycles % (expected 2)', v_n; end if;
-  select count(*) into v_n from public.client_my_lot_values(v_cycle) where contribution_id = c_a;
-  if v_n <> 0 then raise exception 'TEST FAILED: client B sees client A lot'; end if;
-  select fee_amount into v_text from public.client_my_lot_values(v_cycle);
-  if v_text <> '1600.00' then raise exception 'TEST FAILED: client B lot fee % (expected 1600.00)', v_text; end if;
+  select count(*) into v_n from public.client_my_contributions() where id = c_a;
+  if v_n <> 0 then raise exception 'TEST FAILED: client B sees client A contribution'; end if;
+  select current_value || '/' || profit into v_text from public.client_my_cycles() where cycle_id = v_cycle;
+  if v_text <> '56400.00/6400.00' then raise exception 'TEST FAILED: client B value/profit % (expected 56400.00/6400.00)', v_text; end if;
   v_checks := v_checks + 1;
 
   -- ================================================================ inactive client and anon blocked

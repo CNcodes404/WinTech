@@ -39,7 +39,7 @@ interface NavHistoryChartProps {
 }
 
 /**
- * Published gross NAV per unit over time. One series → no legend (the card title names it);
+ * Published NAV per unit (after performance fee) over time. One series → no legend (the card title names it);
  * a dashed neutral line marks the base NAV. The table below the chart is the accessible view.
  */
 export function NavHistoryChart({ points, baseNav }: NavHistoryChartProps) {
@@ -48,7 +48,7 @@ export function NavHistoryChart({ points, baseNav }: NavHistoryChartProps) {
   const last = points.at(-1);
   const summary =
     first && last
-      ? `Gross NAV per unit from ${formatNav(first.exact)} on ${formatDate(new Date(first.t))} to ${formatNav(last.exact)} on ${formatDate(new Date(last.t))}, ${points.length} published values.`
+      ? `NAV per unit from ${formatNav(first.exact)} on ${formatDate(new Date(first.t))} to ${formatNav(last.exact)} on ${formatDate(new Date(last.t))}, ${points.length} published values.`
       : 'No published NAV yet.';
 
   return (

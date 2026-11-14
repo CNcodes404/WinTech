@@ -20,6 +20,13 @@ export interface CycleOverview {
   pending_fee_rate: string | null;
   pending_fee_version: number | null;
   pending_fee_effective_from: string | null;
+  /** Flat ₹ admin fee per client per cycle. */
+  admin_fee_amount: string;
+}
+
+/** The performance fee rate can be changed only before trading starts (Module 15). */
+export function feeRateEditable(status: CycleStatus): boolean {
+  return status === 'draft' || status === 'open';
 }
 
 export interface FeeTerms {
@@ -58,7 +65,8 @@ export const NEXT_STATUS: Record<CycleStatus, StatusStep | null> = {
     next: 'active',
     action: 'Mark as active',
     title: 'Mark this cycle as active?',
-    description: 'Use this when capital has been deployed. The start and end dates become locked.',
+    description:
+      'Use this when capital has been deployed and trading starts. The start and end dates and the performance fee rate become locked.',
     tone: 'primary',
   },
   active: {

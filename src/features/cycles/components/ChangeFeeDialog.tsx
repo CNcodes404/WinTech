@@ -15,8 +15,7 @@ import { FeeExample } from './FeeExample';
 import { FormError } from './FormAlert';
 
 /**
- * Adds a new fee-terms version. Existing contribution lots keep the rate they were issued with;
- * the new rate applies to contributions verified on or after the effective time.
+ * Adds a new performance-fee version (draft/open cycles only; locked once active).
  * Render only while open.
  */
 export function ChangeFeeDialog({ cycle, onClose }: { cycle: CycleOverview; onClose: () => void }) {
@@ -85,8 +84,9 @@ export function ChangeFeeDialog({ cycle, onClose }: { cycle: CycleOverview; onCl
         <p className="flex items-start gap-2 rounded-[var(--radius-control)] bg-info-soft px-3 py-2 text-sm text-info">
           <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
           <span>
-            The new rate applies only to contributions verified on or after the effective time. Existing
-            contribution lots keep their original rate. Past calculations are never changed.
+            The rate applies to the whole cycle’s profit in NAVs calculated from the effective time. Published
+            NAVs are never changed. The rate can only be changed before the cycle is active, and a scheduled
+            change must take effect (or be cancelled) before trading starts.
           </span>
         </p>
         <FormField label="New performance fee (%)" required error={errors.feePercent?.message}>

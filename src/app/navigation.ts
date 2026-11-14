@@ -77,7 +77,7 @@ export const ADMIN_NAV: readonly NavItem[] = [
     path: 'profit-sharing',
     title: 'Profit Sharing',
     icon: Percent,
-    description: 'Performance-fee rates, high-water marks and fee accruals.',
+    description: 'Performance fee, admin fee and each client’s profit.',
     module: 10,
   },
   {

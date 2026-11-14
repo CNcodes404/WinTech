@@ -1,13 +1,14 @@
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { LoadingRegion, Skeleton } from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/toast-context';
-import { formatINR, formatNav, formatRateAsPercent, formatUnits } from '@/lib/format';
+import { formatDate, formatDateTime, formatINR, formatNav, formatUnits } from '@/lib/format';
 import { useVerificationPreview, useVerifyContribution } from '../queries';
 import type { ContributionRow } from '../types';
 
 /**
- * Verification shows the SERVER's preview of exactly what will be issued (NAV, units, fee rate),
+ * Verification shows the SERVER's preview of exactly what will be issued (NAV, NAV date, units),
  * so the admin confirms the authoritative numbers, not a browser estimate. Render only while open.
+ * Money received on a day uses the latest NAV published for an EARLIER day (normally the previous one).
  */
 export function VerifyDialog({
   contribution,
@@ -55,9 +56,15 @@ export function VerifyDialog({
           </dd>
           <dt className="text-muted">Units to issue</dt>
           <dd className="text-right num font-semibold">{formatUnits(preview.data.units)}</dd>
-          <dt className="text-muted">Fee rate (locked)</dt>
-          <dd className="text-right num font-medium">
-            {formatRateAsPercent(preview.data.fee_rate)} · v{preview.data.fee_version}
+          <dt className="text-muted">NAV used</dt>
+          <dd className="text-right text-xs">
+            {preview.data.nav_date
+              ? `Published NAV as of ${formatDateTime(preview.data.nav_date)}`
+              : 'Base NAV (no NAV published before this day)'}
+          </dd>
+          <dd className="col-span-2 text-xs text-muted">
+            Received {formatDate(contribution.received_at)}: money received on a day gets the NAV published
+            for the day before.
           </dd>
         </dl>
       )}

@@ -7,7 +7,7 @@ import { Skeleton, TableSkeleton } from '@/components/ui/Skeleton';
 import { StatCard } from '@/components/ui/StatCard';
 import { ErrorState } from '@/components/ui/States';
 import type { NavChartPoint } from '@/features/nav/logic';
-import { Decimal, toDecimal } from '@/lib/finance';
+import { toDecimal } from '@/lib/finance';
 import {
   formatDateTime,
   formatINR,
@@ -16,19 +16,28 @@ import {
   formatSignedPercent,
   formatUnits,
 } from '@/lib/format';
-import { useMyActivity, useMyLots, useMyNavHistory, useSelectedClientCycle } from '../api';
+import { useMyActivity, useMyNavHistory, useSelectedClientCycle } from '../api';
 import { PortalCycleBar } from '../components/PortalCycleBar';
 import { PortalDisclaimer } from '../components/PortalDisclaimer';
 import { PortalEmpty } from '../components/PortalEmpty';
-import { clientPosition, describeClientActivity } from '../logic';
+import { describeClientActivity, returnOn } from '../logic';
 
 const NavHistoryChart = lazy(() =>
   import('@/features/nav/components/NavHistoryChart').then((m) => ({ default: m.NavHistoryChart })),
 );
 
+const trendOf = (amount: string, invested: string) => {
+  const r = returnOn(amount, invested);
+  return r
+    ? {
+        direction: amount.startsWith('-') ? ('down' as const) : ('up' as const),
+        label: formatSignedPercent(r),
+      }
+    : undefined;
+};
+
 export function ClientOverviewPage() {
   const { cycles, cycle, select } = useSelectedClientCycle();
-  const lots = useMyLots(cycle?.cycle_id ?? '');
   const nav = useMyNavHistory(cycle?.cycle_id ?? '');
   const activity = useMyActivity();
 
@@ -68,14 +77,10 @@ export function ClientOverviewPage() {
     );
   }
 
-  const valuedUnits = lots.data
-    ? lots.data.reduce((s, l) => s.plus(toDecimal(l.units)), new Decimal(0))
-    : null;
-  const pos = clientPosition(cycle, valuedUnits);
   const points: NavChartPoint[] = (nav.data ?? []).map((p) => ({
     t: new Date(p.nav_date).getTime(),
-    nav: toDecimal(p.gross_nav_per_unit).toNumber(), // display-only
-    exact: p.gross_nav_per_unit,
+    nav: toDecimal(p.nav_per_unit).toNumber(), // display-only
+    exact: p.nav_per_unit,
   }));
 
   return (
@@ -84,17 +89,17 @@ export function ClientOverviewPage() {
       <div className="space-y-6">
         <PortalCycleBar cycles={cycles.data} cycle={cycle} onSelect={select} />
 
-        <section aria-label="Your investment" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <section aria-label="Your investment" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
-            label="Total contributed"
+            label="Total invested"
             value={formatINR(cycle.net_contributed)}
             meta="Verified, after any reversals"
           />
           <StatCard label="Units held" term="units" value={formatUnits(cycle.units, { decimals: 4 })} />
           <StatCard
-            label="Latest NAV per unit"
-            term="grossNav"
-            value={formatNav(cycle.latest_gross_nav ?? cycle.base_nav)}
+            label="NAV per unit"
+            term="nav"
+            value={formatNav(cycle.latest_nav ?? cycle.base_nav)}
             meta={
               cycle.latest_nav_date
                 ? `as of ${formatDateTime(cycle.latest_nav_date)}`
@@ -102,56 +107,38 @@ export function ClientOverviewPage() {
             }
           />
           <StatCard
-            label="Indicative net value"
+            label="Current value"
             term="netValue"
-            loading={lots.isPending && Boolean(cycle.latest_nav_date)}
-            value={pos.netValue ? formatINR(pos.netValue) : '—'}
-            meta={
-              pos.netNavPerUnit
-                ? `Your net NAV ${formatNav(pos.netNavPerUnit)} per unit`
-                : 'After a NAV is published'
-            }
+            value={formatINR(cycle.current_value)}
+            meta="Units × NAV per unit"
           />
           <StatCard
-            label="Net profit / loss"
-            value={pos.pnl ? formatSignedINR(pos.pnl) : '—'}
-            trend={
-              pos.pnl && pos.pnlReturn
-                ? {
-                    direction: pos.pnl.isNegative() ? 'down' : 'up',
-                    label: formatSignedPercent(pos.pnlReturn),
-                  }
-                : undefined
-            }
-            meta="After the indicative performance fee"
+            label="Profit"
+            term="profit"
+            value={formatSignedINR(cycle.profit)}
+            trend={trendOf(cycle.profit, cycle.net_contributed)}
+            meta="Current value − total invested"
           />
           <StatCard
-            label="Indicative performance fee"
-            term="performanceFee"
-            value={formatINR(cycle.fee_amount ?? '0')}
-            meta={
-              cycle.loss_to_recover && toDecimal(cycle.loss_to_recover).greaterThan(0)
-                ? `No fee until ${formatINR(cycle.loss_to_recover)} is recovered`
-                : 'Accrued only; nothing deducted'
-            }
+            label="Admin fee"
+            term="adminFee"
+            value={formatINR(cycle.admin_fee)}
+            meta="For this cycle, deducted from your profit"
+          />
+          <StatCard
+            label="Final profit"
+            term="finalProfit"
+            value={formatSignedINR(cycle.final_profit)}
+            trend={trendOf(cycle.final_profit, cycle.net_contributed)}
+            meta={`Value after admin fee ${formatINR(cycle.final_value)}`}
           />
         </section>
-
-        {pos.hasUnvaluedLots && (
-          <p
-            role="status"
-            className="rounded-[var(--radius-control)] bg-info-soft px-3 py-2 text-sm text-info"
-          >
-            Some of your contributions were verified after the latest NAV. They will be valued when the next
-            NAV is published.
-          </p>
-        )}
 
         <div className="grid gap-6 lg:grid-cols-3">
           <Card className="lg:col-span-2">
             <CardHeader
               title="NAV per unit over time"
-              description="Published gross NAV of your cycle."
+              description="Published NAV of your cycle, updated once a day."
               as="h2"
             />
             <div className="px-2 py-4 sm:px-4">

@@ -3,8 +3,16 @@ import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table';
 import { useCycles } from '@/features/cycles/queries';
 import { NavStatusBadge } from '@/features/nav/components/NavStatusBadge';
 import { useNavSnapshots } from '@/features/nav/queries';
+import { clientNav } from '@/features/nav/types';
 import { downloadCsv, slug, toCsv } from '@/lib/csv';
-import { formatDateTime, formatINR, formatNav, formatUnits, isoDateInIST } from '@/lib/format';
+import {
+  formatDateTime,
+  formatINR,
+  formatNav,
+  formatSignedINR,
+  formatUnits,
+  isoDateInIST,
+} from '@/lib/format';
 import { CycleFilter, ReportCard } from './ReportParts';
 
 export function NavHistoryReport() {
@@ -21,9 +29,11 @@ export function NavHistoryReport() {
         'Status',
         'Net asset value (INR)',
         'Outstanding units',
-        'Gross NAV per unit',
-        'Indicative fee (INR)',
-        'Net NAV per unit (weighted)',
+        'Market NAV per unit',
+        'Money invested (INR)',
+        'Cycle profit (INR)',
+        'Performance fee (INR)',
+        'NAV per unit (client sees)',
         'Published at',
         'Publish note',
         'Method',
@@ -36,8 +46,10 @@ export function NavHistoryReport() {
           s.gross_net_asset_value,
           s.total_outstanding_units,
           s.gross_nav_per_unit,
+          s.net_contributed,
+          s.profit_before_fee,
           s.performance_fee_amount,
-          s.net_nav_per_unit,
+          clientNav(s),
           s.published_at,
           s.publish_reason,
           s.calculation_version,
@@ -74,9 +86,10 @@ export function NavHistoryReport() {
             <TH>Status</TH>
             <TH numeric>Net asset value</TH>
             <TH numeric>Units</TH>
-            <TH numeric>Gross NAV</TH>
-            <TH numeric>Fee</TH>
-            <TH numeric>Net NAV (weighted)</TH>
+            <TH numeric>Market NAV</TH>
+            <TH numeric>Cycle profit</TH>
+            <TH numeric>Performance fee</TH>
+            <TH numeric>NAV / unit</TH>
           </tr>
         </THead>
         <TBody>
@@ -88,9 +101,14 @@ export function NavHistoryReport() {
               </TD>
               <TD numeric>{formatINR(s.gross_net_asset_value)}</TD>
               <TD numeric>{formatUnits(s.total_outstanding_units, { decimals: 4 })}</TD>
-              <TD numeric>{formatNav(s.gross_nav_per_unit)}</TD>
+              <TD numeric className="text-muted">
+                {formatNav(s.gross_nav_per_unit)}
+              </TD>
+              <TD numeric>{formatSignedINR(s.profit_before_fee)}</TD>
               <TD numeric>{formatINR(s.performance_fee_amount)}</TD>
-              <TD numeric>{formatNav(s.net_nav_per_unit)}</TD>
+              <TD numeric className="font-medium">
+                {formatNav(clientNav(s))}
+              </TD>
             </TR>
           ))}
         </TBody>

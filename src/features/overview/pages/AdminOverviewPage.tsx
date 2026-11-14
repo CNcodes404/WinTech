@@ -14,8 +14,9 @@ import { RecordContributionDialog } from '@/features/contributions/components/Re
 import { useCycleUnitSummary } from '@/features/contributions/queries';
 import { CycleStatusBadge } from '@/features/cycles/components/CycleStatusBadge';
 import { useCycles } from '@/features/cycles/queries';
-import { useLotAccruals } from '@/features/fees/api';
+import { usePositions } from '@/features/fees/api';
 import { useNavSnapshots } from '@/features/nav/queries';
+import { clientNav, FUND_LEVEL } from '@/features/nav/types';
 import { useValuations } from '@/features/portfolio/queries';
 import {
   formatDate,
@@ -70,7 +71,7 @@ export function AdminOverviewPage() {
   const draftValuations = valuations.data?.filter((v) => v.status === 'draft') ?? [];
   const latestNav = snapshots.data?.find((s) => s.status === 'published');
   const draftNav = snapshots.data?.find((s) => s.status === 'draft');
-  const lots = useLotAccruals(latestNav?.id ?? '');
+  const lots = usePositions(latestNav?.calculation_version === FUND_LEVEL ? latestNav.id : '');
   const pnl = lots.data && lots.data.length > 0 ? unrealisedPnl(lots.data) : null;
 
   const [addClientOpen, setAddClientOpen] = useState(false);
@@ -125,7 +126,7 @@ export function AdminOverviewPage() {
   const setupIncomplete = !loading && (!cycle || !latestNav);
   const steps = [
     { label: 'Add at least one client', done: (clients.data ?? 0) > 0, href: '/admin/clients' },
-    { label: 'Create an investment cycle with a fee rate', done: all.length > 0, href: '/admin/cycles' },
+    { label: 'Create an investment cycle with its fees', done: all.length > 0, href: '/admin/cycles' },
     {
       label: 'Open the cycle for contributions',
       done: all.some((c) => c.status !== 'draft'),
@@ -164,8 +165,8 @@ export function AdminOverviewPage() {
         )),
         draftNav && (
           <AttentionItem key="nav" to={`/admin/nav/snapshots/${draftNav.id}`}>
-            Draft NAV of <span className="num font-medium">{formatNav(draftNav.gross_nav_per_unit)}</span>{' '}
-            awaiting publishing
+            Draft NAV of <span className="num font-medium">{formatNav(clientNav(draftNav))}</span> awaiting
+            publishing
           </AttentionItem>
         ),
       ].filter(Boolean)
@@ -235,22 +236,22 @@ export function AdminOverviewPage() {
                   badge={<DemoBadge kind="manual" />}
                 />
                 <StatCard
-                  label="Gross NAV per unit"
-                  term="grossNav"
+                  label="NAV per unit"
+                  term="netNav"
                   loading={snapshots.isPending}
-                  value={formatNav(latestNav?.gross_nav_per_unit ?? cycle.base_nav)}
+                  value={formatNav(latestNav ? clientNav(latestNav) : cycle.base_nav)}
                   meta={
                     latestNav
-                      ? `published for ${formatDateTime(latestNav.nav_date)}`
+                      ? `published for ${formatDateTime(latestNav.nav_date)} · what clients see`
                       : 'Base NAV (nothing published)'
                   }
                 />
                 <StatCard
-                  label="Net NAV per unit"
-                  term="netNav"
+                  label="Market NAV per unit"
+                  term="grossNav"
                   loading={snapshots.isPending}
-                  value={latestNav?.net_nav_per_unit ? formatNav(latestNav.net_nav_per_unit) : '—'}
-                  meta="Weighted average after indicative fee"
+                  value={latestNav ? formatNav(latestNav.gross_nav_per_unit) : '—'}
+                  meta="Before the performance fee"
                 />
                 <StatCard
                   label="Outstanding units"
@@ -271,34 +272,35 @@ export function AdminOverviewPage() {
                         }
                       : undefined
                   }
-                  meta={pnl ? 'Before fee, at the latest NAV' : 'Publish a NAV to see P/L'}
+                  meta={pnl ? 'Before fees, at the latest NAV' : 'Publish a NAV to see P/L'}
                 />
                 <StatCard
-                  label="Unrealised P/L after fee"
+                  label="Clients' final profit"
+                  term="finalProfit"
                   loading={Boolean(latestNav) && lots.isPending}
-                  value={pnl ? formatSignedINR(pnl.netPnl) : '—'}
+                  value={pnl ? formatSignedINR(pnl.finalPnl) : '—'}
                   trend={
-                    pnl?.netReturn
+                    pnl?.finalReturn
                       ? {
-                          direction: pnl.netPnl.isNegative() ? 'down' : 'up',
-                          label: formatSignedPercent(pnl.netReturn),
+                          direction: pnl.finalPnl.isNegative() ? 'down' : 'up',
+                          label: formatSignedPercent(pnl.finalReturn),
                         }
                       : undefined
                   }
                   meta={
-                    latestNav?.performance_fee_amount
-                      ? `Indicative fee ${formatINR(latestNav.performance_fee_amount)}`
+                    pnl
+                      ? `After performance fee ${formatINR(latestNav?.performance_fee_amount ?? '0')} and admin fees ${formatINR(pnl.adminFees)}`
                       : undefined
                   }
                 />
                 <StatCard
-                  label="Performance-fee rate"
+                  label="Fees"
                   term="performanceFee"
-                  value={formatRateAsPercent(cycle.current_fee_rate)}
+                  value={`${formatRateAsPercent(cycle.current_fee_rate)} · ${formatINR(cycle.admin_fee_amount)}`}
                   meta={
                     cycle.pending_fee_rate
-                      ? `Changes to ${formatRateAsPercent(cycle.pending_fee_rate)} on ${formatDate(cycle.pending_fee_effective_from)}`
-                      : `Version ${cycle.current_fee_version ?? '—'}`
+                      ? `Performance fee changes to ${formatRateAsPercent(cycle.pending_fee_rate)} on ${formatDate(cycle.pending_fee_effective_from)}`
+                      : 'Performance fee · admin fee per client'
                   }
                 />
               </section>

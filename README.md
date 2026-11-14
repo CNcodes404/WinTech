@@ -10,13 +10,16 @@ Record-keeping prototype for a unit/NAV-based investment pool with **Admin** and
 
 ## What it does
 
-**Admin:** clients (logins with temporary passwords), investment cycles with versioned performance-fee
-rates, manual contributions (verify → units issued once at the applicable NAV; reject; reverse), manual
-portfolio valuations (draft → approve → correct), NAV calculation and publishing, per-lot performance-fee
-accruals (high-water mark per contribution), dashboard, reports with CSV export, audit log, admin management.
+**Admin:** clients (logins with temporary passwords), investment cycles with a performance-fee rate
+(locked once trading starts) and a flat admin fee per client, manual contributions (verify → units issued
+once at the previous day's NAV; reject; reverse), manual portfolio valuations (draft → approve → correct),
+daily NAV calculation and publishing (performance fee taken from the cycle's total profit, one NAV for all
+clients), per-client positions, dashboard, reports with CSV export, audit log, admin management, erase-all
+demo reset.
 
-**Client (read-only, own data only):** overview with indicative net value and P/L, contribution lots with a
-step-by-step fee breakdown, activity, printable/CSV statements, profile and password.
+**Client (read-only, own data only):** NAV per unit (after performance fee), current value, profit, admin
+fee and final profit; contributions valued at the latest NAV; activity; printable/CSV statements; profile and
+password. Clients never see the performance fee.
 
 ## Stack
 

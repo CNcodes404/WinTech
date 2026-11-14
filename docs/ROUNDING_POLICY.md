@@ -22,9 +22,15 @@ All persisted financial values use PostgreSQL `NUMERIC`. Browser code uses `deci
 
 ## Reference examples (tested)
 
-| Input                     | Result                         |
-| ------------------------- | ------------------------------ |
-| ₹1,00,000 ÷ ₹100          | 1,000.00000000 units           |
-| ₹50,000 ÷ ₹105            | 476.19047619 units             |
-| ₹1,50,000 ÷ ₹110          | 1,363.63636363 units (not …64) |
-| Gross ₹116, HWM ₹100, 20% | Fee ₹3.20 / unit, net ₹112.80  |
+| Input                                                           | Result                                                 |
+| --------------------------------------------------------------- | ------------------------------------------------------ |
+| ₹1,00,000 ÷ ₹100                                                | 1,000.00000000 units                                   |
+| ₹50,000 ÷ ₹105                                                  | 476.19047619 units                                     |
+| ₹1,50,000 ÷ ₹110                                                | 1,363.63636363 units (not …64)                         |
+| Gross ₹116, HWM ₹100, 20%                                       | Fee ₹3.20 / unit, net ₹112.80 (earlier per-lot method) |
+| Assets ₹1,30,000, invested ₹1,00,000, 1,000 units, 50%          | Fee ₹15,000.00 → NAV ₹115.00000000                     |
+| …then admin fee ₹1,000                                          | Profit ₹15,000.00 → final profit ₹14,000.00            |
+| Assets ₹2,80,000, invested ₹2,30,000, 2,130.43478260 units, 50% | Fee ₹25,000.00 → NAV ₹119.69387755                     |
+
+Fund-level fee (Module 15): `fee = round_half_up_2(max(0, assets − invested) × rate)`, then
+`NAV = round_half_up_8((assets − fee) / units)`. Client value = `round_half_up_2(units × NAV)`.

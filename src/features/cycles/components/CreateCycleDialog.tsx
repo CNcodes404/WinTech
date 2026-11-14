@@ -33,10 +33,11 @@ export function CreateCycleDialog({ onClose }: { onClose: () => void }) {
       startDate: isoDateInIST(),
       endDate: '',
       baseNav: '100',
-      feePercent: '',
+      feePercent: '20',
+      adminFee: '1000',
     },
   });
-  const feePercent = useWatch({ control, name: 'feePercent' });
+  const [feePercent, adminFee] = useWatch({ control, name: ['feePercent', 'adminFee'] });
 
   const onSubmit = handleSubmit(async (v) => {
     setFormError(null);
@@ -48,6 +49,7 @@ export function CreateCycleDialog({ onClose }: { onClose: () => void }) {
         endDate: v.endDate,
         baseNav: v.baseNav,
         feeRate: percentToRate(v.feePercent),
+        adminFee: v.adminFee,
       });
       toast({ title: 'Cycle created', description: 'It is a draft until you open it for contributions.' });
       onClose();
@@ -111,7 +113,7 @@ export function CreateCycleDialog({ onClose }: { onClose: () => void }) {
           <FormField
             label="Performance fee (%)"
             required
-            hint="Share of eligible profit, e.g. 20."
+            hint="Share of the cycle’s profit. Never shown to clients. Locked once trading starts."
             error={errors.feePercent?.message}
           >
             {(field) => (
@@ -125,7 +127,15 @@ export function CreateCycleDialog({ onClose }: { onClose: () => void }) {
             )}
           </FormField>
         </div>
-        <FeeExample percent={feePercent ?? ''} />
+        <FormField
+          label="Admin fee (₹ per client)"
+          required
+          hint="Charged once per client for this cycle, even without profit. Shown to clients. Editable later."
+          error={errors.adminFee?.message}
+        >
+          {(field) => <Input {...field} {...register('adminFee')} inputMode="decimal" className="num" />}
+        </FormField>
+        <FeeExample percent={feePercent ?? ''} adminFee={adminFee ?? ''} />
       </form>
     </Dialog>
   );

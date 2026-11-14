@@ -21,6 +21,11 @@ export const feePercentField = z
   .regex(PERCENT, 'Enter a percentage such as 20 or 17.5 (up to 4 decimals).')
   .refine((v) => !PERCENT.test(v) || toDecimal(v).lessThan(100), 'The fee must be below 100%.');
 
+const MONEY = /^\d{1,12}(\.\d{1,2})?$/;
+
+/** Flat admin fee in ₹ (0 or more, paise allowed). */
+export const adminFeeField = z.string().trim().regex(MONEY, 'Enter an amount in ₹ such as 1000 or 1500.50.');
+
 /** "20" → "0.2", "17.5" → "0.175" — exact decimal conversion, no floats. */
 export function percentToRate(percent: string): string {
   return toDecimal(percent).dividedBy(100).toFixed();
@@ -48,9 +53,12 @@ const endAfterStart = <T extends { startDate: string; endDate: string }>(v: T) =
   !ISO_DATE.test(v.startDate) || !ISO_DATE.test(v.endDate) || v.endDate > v.startDate;
 
 export const createCycleSchema = z
-  .object({ ...cycleCore, feePercent: feePercentField })
+  .object({ ...cycleCore, feePercent: feePercentField, adminFee: adminFeeField })
   .refine(endAfterStart, { path: ['endDate'], message: 'The end date must be after the start date.' });
 export type CreateCycleValues = z.infer<typeof createCycleSchema>;
+
+export const adminFeeSchema = z.object({ amount: adminFeeField, reason: reasonField });
+export type AdminFeeValues = z.infer<typeof adminFeeSchema>;
 
 export const editCycleSchema = z
   .object({ ...cycleCore, reason: reasonField })

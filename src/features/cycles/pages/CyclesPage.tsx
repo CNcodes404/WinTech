@@ -8,7 +8,7 @@ import { TableSkeleton } from '@/components/ui/Skeleton';
 import { EmptyState, ErrorState } from '@/components/ui/States';
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table';
 import { InfoTip } from '@/components/ui/Tooltip';
-import { formatDate, formatNav, formatRateAsPercent } from '@/lib/format';
+import { formatDate, formatINR, formatNav, formatRateAsPercent } from '@/lib/format';
 import { CreateCycleDialog } from '../components/CreateCycleDialog';
 import { CycleStatusBadge } from '../components/CycleStatusBadge';
 import { useCycles } from '../queries';
@@ -18,6 +18,9 @@ function FeeCell({ c }: { c: CycleOverview }) {
   return (
     <div>
       <span className="num font-medium">{formatRateAsPercent(c.current_fee_rate)}</span>
+      <span className="mt-0.5 block num text-xs text-muted">
+        + {formatINR(c.admin_fee_amount)} admin / client
+      </span>
       {c.pending_fee_rate && c.pending_fee_effective_from && (
         <span className="mt-0.5 flex items-center gap-1 text-xs text-warning">
           <Clock aria-hidden="true" className="size-3" />
@@ -38,7 +41,7 @@ export function CyclesPage() {
     <>
       <PageHeader
         title="Investment Cycles"
-        description="Each cycle has its own dates, base NAV and versioned performance-fee rate."
+        description="Each cycle has its own dates, base NAV, performance-fee rate and admin fee."
         actions={
           <Button onClick={() => setCreateOpen(true)}>
             <Plus aria-hidden="true" className="size-4" />
@@ -126,7 +129,7 @@ export function CyclesPage() {
                     </div>
                     <p className="mt-1 num text-sm text-muted">
                       {formatDate(c.start_date)} – {formatDate(c.end_date)} · NAV {formatNav(c.base_nav)} ·
-                      Fee {formatRateAsPercent(c.current_fee_rate)}
+                      Fee {formatRateAsPercent(c.current_fee_rate)} + {formatINR(c.admin_fee_amount)}
                     </p>
                   </Link>
                 </li>

@@ -5,17 +5,15 @@ import { Select } from '@/components/ui/Form';
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table';
 import { METHOD_LABEL } from '@/features/contributions/types';
 import { useCycles } from '@/features/cycles/queries';
-import { useLotAccruals } from '@/features/fees/api';
-import { summariseAccruals } from '@/features/fees/logic';
+import { clientFigures } from '@/features/fees/logic';
 import { useNavSnapshots } from '@/features/nav/queries';
+import { clientNav } from '@/features/nav/types';
 import { downloadCsv, slug, toCsv } from '@/lib/csv';
 import { Decimal } from '@/lib/finance';
 import {
-  formatDate,
   formatDateTime,
   formatINR,
   formatNav,
-  formatRateAsPercent,
   formatSignedINR,
   formatUnits,
   isoDateInIST,
@@ -24,7 +22,10 @@ import { isUuid } from '@/lib/utils/uuid';
 import { useContributionRegister, usePeople } from '../api';
 import { CycleFilter, FilterField, ReportCard } from './ReportParts';
 
-/** Admin view of any client's statement for a cycle (printable + CSV). */
+/**
+ * Admin copy of any client's statement for a cycle (printable + CSV): exactly the figures the client
+ * sees — NAV after performance fee, value, profit, admin fee, final profit. No performance fee shown.
+ */
 export function ClientStatementReport() {
   const [clientId, setClientId] = useState('');
   const [cycleId, setCycleId] = useState('');
@@ -41,16 +42,33 @@ export function ClientStatementReport() {
   );
   const snapshots = useNavSnapshots(ready ? cycleId : '');
   const latest = snapshots.data?.find((s) => s.status === 'published');
-  const allLots = useLotAccruals(latest?.id ?? '');
-  const lots = (allLots.data ?? []).filter((l) => l.client_id === clientId);
-  const summary = summariseAccruals(lots);
-  const contributedValued = lots.reduce((s, l) => s.plus(l.contributed_amount), new Decimal(0));
-  const pnl = lots.length ? summary.netValue.minus(contributedValued) : null;
+  const verified = (register.data?.rows ?? []).filter((r) => r.status === 'verified');
+  const nav = latest ? clientNav(latest) : (cycle?.base_nav ?? '0');
+  const figures = clientFigures({
+    units: verified.reduce((s, r) => s.plus(r.units_issued ?? '0'), new Decimal(0)),
+    contributed: verified.reduce((s, r) => s.plus(r.amount), new Decimal(0)),
+    nav,
+    adminFee: cycle?.admin_fee_amount ?? '0',
+  });
 
   function download() {
     if (!client || !cycle) return;
     const header = toCsv(
-      ['Statement', 'Client', 'Email', 'Cycle', 'Valued as of', 'Generated'],
+      [
+        'Statement',
+        'Client',
+        'Email',
+        'Cycle',
+        'Valued as of',
+        'NAV per unit',
+        'Units',
+        'Invested (INR)',
+        'Current value (INR)',
+        'Profit (INR)',
+        'Admin fee (INR)',
+        'Final profit (INR)',
+        'Generated',
+      ],
       [
         [
           'WinTech client statement (DEMO, admin copy)',
@@ -58,33 +76,16 @@ export function ClientStatementReport() {
           client.email,
           cycle.name,
           latest?.nav_date ?? '',
+          nav,
+          figures.units.toFixed(8),
+          figures.contributed.toFixed(2),
+          figures.value.toFixed(2),
+          figures.profit.toFixed(2),
+          figures.adminFee.toFixed(2),
+          figures.finalProfit.toFixed(2),
           new Date().toISOString(),
         ],
       ],
-    );
-    const lotCsv = toCsv(
-      [
-        'Contribution received',
-        'Contributed (INR)',
-        'Units',
-        'Entry NAV',
-        'Fee rate',
-        'Gross value (INR)',
-        'Indicative fee (INR)',
-        'Net value (INR)',
-        'Loss to recover (INR)',
-      ],
-      lots.map((l) => [
-        l.received_at,
-        l.contributed_amount,
-        l.units,
-        l.entry_nav,
-        l.fee_rate,
-        l.gross_value,
-        l.fee_amount,
-        l.net_value,
-        l.loss_to_recover,
-      ]),
     );
     const contribCsv = toCsv(
       ['Received', 'Amount (INR)', 'Method', 'Reference', 'Status', 'NAV applied', 'Units issued'],
@@ -100,15 +101,15 @@ export function ClientStatementReport() {
     );
     downloadCsv(
       `statement-${slug(client.full_name || client.email)}-${slug(cycle.name)}-${isoDateInIST()}.csv`,
-      `${header}\r\nLots\r\n${lotCsv}\r\nContributions\r\n${contribCsv}`,
+      `${header}\r\nContributions\r\n${contribCsv}`,
     );
   }
 
   const state = !ready
     ? 'idle'
-    : register.isPending || snapshots.isPending || (latest && allLots.isPending)
+    : register.isPending || snapshots.isPending
       ? 'loading'
-      : register.isError || snapshots.isError || allLots.isError
+      : register.isError || snapshots.isError
         ? 'error'
         : (register.data?.total ?? 0) === 0
           ? 'empty'
@@ -162,7 +163,9 @@ export function ClientStatementReport() {
             <dt className="text-muted">Cycle</dt>
             <dd>{cycle?.name}</dd>
             <dt className="text-muted">Valued as of</dt>
-            <dd className="num">{latest ? formatDateTime(latest.nav_date) : 'No NAV published'}</dd>
+            <dd className="num">
+              {latest ? formatDateTime(latest.nav_date) : 'No NAV published (base NAV)'}
+            </dd>
             <dt className="text-muted">Generated</dt>
             <dd className="num">{formatDateTime(new Date())}</dd>
           </dl>
@@ -170,12 +173,14 @@ export function ClientStatementReport() {
 
         <dl className="grid gap-3 text-sm sm:grid-cols-4">
           {[
-            ['Contributed (valued lots)', formatINR(contributedValued)],
-            ['Indicative gross value', formatINR(summary.grossValue)],
-            ['Indicative fee', formatINR(summary.fee)],
-            ['Indicative net value', formatINR(summary.netValue)],
-            ['Net profit / loss', pnl ? formatSignedINR(pnl) : '—'],
-            ['Latest gross NAV', latest ? formatNav(latest.gross_nav_per_unit, { decimals: 8 }) : '—'],
+            ['NAV per unit', formatNav(nav, { decimals: 8 })],
+            ['Units held', formatUnits(figures.units)],
+            ['Invested', formatINR(figures.contributed)],
+            ['Current value', formatINR(figures.value)],
+            ['Profit', formatSignedINR(figures.profit)],
+            ['Admin fee', formatINR(figures.adminFee)],
+            ['Final profit', formatSignedINR(figures.finalProfit)],
+            ['Value after admin fee', formatINR(figures.finalValue)],
           ].map(([k, v]) => (
             <div key={k}>
               <dt className="text-muted">{k}</dt>
@@ -183,37 +188,6 @@ export function ClientStatementReport() {
             </div>
           ))}
         </dl>
-
-        {lots.length > 0 && (
-          <Table caption="Valued lots" minWidth={760}>
-            <THead>
-              <tr>
-                <TH>Date</TH>
-                <TH numeric>Amount</TH>
-                <TH numeric>Entry NAV</TH>
-                <TH numeric>Units</TH>
-                <TH numeric>Rate</TH>
-                <TH numeric>Gross value</TH>
-                <TH numeric>Fee</TH>
-                <TH numeric>Net value</TH>
-              </tr>
-            </THead>
-            <TBody>
-              {lots.map((l) => (
-                <TR key={l.id}>
-                  <TD className="num">{formatDate(l.received_at)}</TD>
-                  <TD numeric>{formatINR(l.contributed_amount)}</TD>
-                  <TD numeric>{formatNav(l.entry_nav)}</TD>
-                  <TD numeric>{formatUnits(l.units)}</TD>
-                  <TD numeric>{formatRateAsPercent(l.fee_rate)}</TD>
-                  <TD numeric>{formatINR(l.gross_value)}</TD>
-                  <TD numeric>{formatINR(l.fee_amount)}</TD>
-                  <TD numeric>{formatINR(l.net_value)}</TD>
-                </TR>
-              ))}
-            </TBody>
-          </Table>
-        )}
 
         <Table caption="Contribution history" minWidth={680}>
           <THead>
@@ -240,8 +214,8 @@ export function ClientStatementReport() {
           </TBody>
         </Table>
         <p className="text-xs text-muted">
-          Indicative figures from manually entered demo valuations; not live market data. The performance fee
-          is accrued for information only. Not an official account statement.
+          Indicative figures from manually entered demo valuations; not live market data. The admin fee is
+          shown for information; no money is deducted by the app. Not an official account statement.
         </p>
       </div>
     </ReportCard>

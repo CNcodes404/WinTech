@@ -1,5 +1,5 @@
 import { jsonObject, type AuditEntry } from '@/features/audit/api';
-import { formatINR, formatNav, formatRateAsPercent, formatUnits } from '@/lib/format';
+import { formatINR, formatNav, formatUnits } from '@/lib/format';
 
 const s = (v: unknown) => (v === null || v === undefined ? '' : String(v));
 
@@ -17,7 +17,7 @@ export function describeContributionEntry(
         {
           decimals: 8,
         },
-      )}, fee rate ${formatRateAsPercent(s(after.fee_rate))} locked`;
+      )}`;
     case 'contribution.rejected':
       return 'Rejected — no units issued';
     case 'contribution.reversed':

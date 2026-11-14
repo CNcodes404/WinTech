@@ -8,6 +8,7 @@ import {
   getCycle,
   listCycles,
   listFeeTerms,
+  setAdminFee,
   setCycleStatus,
   updateCycle,
   type CycleInput,
@@ -42,8 +43,18 @@ export function useFeeTerms(id: string) {
 export function useCreateCycle() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: CycleInput & { feeRate: string }) => createCycle(input),
+    mutationFn: (input: CycleInput & { feeRate: string; adminFee: string }) => createCycle(input),
     onSuccess: () => refresh(qc),
+  });
+}
+
+export function useSetAdminFee(cycleId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ amount, reason }: { amount: string; reason: string }) =>
+      setAdminFee(cycleId, amount, reason),
+    // Client values, reports and the overview all include the admin fee.
+    onSuccess: () => qc.invalidateQueries(),
   });
 }
 

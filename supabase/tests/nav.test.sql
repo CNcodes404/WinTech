@@ -84,7 +84,7 @@ begin
   select * into v_s from public.nav_snapshots where id = s1;
   if v_s.gross_nav_per_unit <> 105 or v_s.total_outstanding_units <> 1000 or v_s.gross_net_asset_value <> 105000
      or v_s.status <> 'draft' or v_s.nav_date <> v_t1 or v_s.valuation_id <> v_val1
-     -- Module 10 fee accrual: 1000 units × (105 − HWM 100) × 20% = ₹1,000 → net NAV (105000 − 1000) / 1000 = 104
+     -- Module 15 fund-level fee: profit 105000 − 100000 = 5000 × 20% = ₹1,000 → NAV (105000 − 1000) / 1000 = 104
      or v_s.performance_fee_amount <> 1000 or v_s.net_nav_per_unit <> 104 then
     raise exception 'TEST FAILED: snapshot incorrect: %', row_to_json(v_s);
   end if;
@@ -119,17 +119,16 @@ begin
   if not v_raised then raise exception 'TEST FAILED: second NAV for an already published date'; end if;
   v_checks := v_checks + 1;
 
-  -- ================================================================ Decision B: units at latest published NAV
+  -- ================================================================ previous-day NAV rule (Module 15)
   perform pg_sleep(0.02);
-  -- Amit: ₹50,000 received after the ₹105 NAV → 476.19047619 units (spec example).
+  -- Amit: ₹50,000 received TODAY, after today's NAV was published. Money received on a day uses the
+  -- latest NAV dated before that day, so today's NAV is not used: base ₹100 → 500 units.
   c_amit := public.admin_record_contribution(v_cycle, v_amit, 50000, clock_timestamp(), 'upi', 'N-UPI-1', null);
   perform public.admin_verify_contribution(c_amit, 'Matched UPI receipt');
   select applicable_nav, units_issued into v_num, v_text from public.contributions where id = c_amit;
-  if v_num <> 105 or v_text <> '476.19047619' then
-    raise exception 'TEST FAILED: Amit issued at NAV % / units %, expected 105 / 476.19047619', v_num, v_text;
+  if v_num <> 100 or v_text <> '500.00000000' then
+    raise exception 'TEST FAILED: Amit issued at NAV % / units %, expected 100 / 500.00000000 (same-day NAV must not be used)', v_num, v_text;
   end if;
-  select reference_hwm into v_num from public.client_unit_allocations where contribution_id = c_amit and entry_type = 'issue';
-  if v_num <> 105 then raise exception 'TEST FAILED: Amit HWM % (should equal entry NAV 105)', v_num; end if;
   v_checks := v_checks + 1;
 
   -- Money received BEFORE the NAV date (verified later) still uses the NAV as of its receipt (base ₹100).
@@ -164,9 +163,9 @@ begin
   perform public.admin_approve_valuation(v_val3, 'Fresh valuation after new money');
   s3 := public.admin_calculate_nav(v_val3, null);
   select * into v_s from public.nav_snapshots where id = s3;
-  -- 1000 + 476.19047619 + 10 units
-  if v_s.total_outstanding_units <> 1486.19047619
-     or v_s.gross_nav_per_unit <> round(163480.95::numeric / 1486.19047619::numeric, 8) then
+  -- 1000 + 500 + 10 units
+  if v_s.total_outstanding_units <> 1510
+     or v_s.gross_nav_per_unit <> round(163480.95::numeric / 1510::numeric, 8) then
     raise exception 'TEST FAILED: second NAV incorrect: %', row_to_json(v_s);
   end if;
   perform public.admin_publish_nav(s3, 'Updated demo NAV');
@@ -205,7 +204,7 @@ begin
 
   -- Already-issued units are never rewritten by a NAV correction.
   select units_issued::text into v_text from public.contributions where id = c_amit;
-  if v_text <> '476.19047619' then raise exception 'TEST FAILED: issued units changed after correction (%)', v_text; end if;
+  if v_text <> '500.00000000' then raise exception 'TEST FAILED: issued units changed after correction (%)', v_text; end if;
   v_checks := v_checks + 1;
 
   -- ================================================================ non-positive NAV
@@ -227,13 +226,14 @@ begin
   if v_n <> 4 then raise exception 'TEST FAILED: publish/correct audit rows = %, expected 4', v_n; end if;
   v_checks := v_checks + 1;
 
-  -- ================================================================ applicable NAV now follows the correction
+  -- ================================================================ applicable NAV: same day → earlier NAV; next day → latest NAV
   execute 'set local role postgres';
-  if private.applicable_nav(v_cycle, v_t1 + interval '1 millisecond') <> 104 then
-    raise exception 'TEST FAILED: applicable NAV ignores the correction';
+  if private.applicable_nav(v_cycle, v_t1 + interval '1 millisecond') <> 100 then
+    raise exception 'TEST FAILED: same-day money must not use that day''s NAV';
   end if;
-  if private.applicable_nav(v_cycle, v_t1 - interval '1 second') <> 100 then
-    raise exception 'TEST FAILED: applicable NAV before first publish should be base NAV';
+  if private.applicable_nav(v_cycle, now() + interval '1 day')
+     <> (select net_nav_per_unit from public.nav_snapshots where id = s3) then
+    raise exception 'TEST FAILED: next-day money should use the latest published NAV (after performance fee)';
   end if;
   v_checks := v_checks + 1;
 

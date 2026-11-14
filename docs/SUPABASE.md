@@ -32,7 +32,7 @@ npx supabase db query --remote -f supabase/tests/rls_profiles.test.sql
 npx supabase db query --remote -f supabase/tests/rls_audit.test.sql
 # Expected: ERROR ... ALL_AUDIT_TESTS_PASSED (22 checks)
 npx supabase db query --remote -f supabase/tests/cycles.test.sql
-# Expected: ERROR ... ALL_CYCLE_TESTS_PASSED (34 checks)
+# Expected: ERROR ... ALL_CYCLE_TESTS_PASSED (37 checks)
 npx supabase db query --remote -f supabase/tests/contributions.test.sql
 # Expected: ERROR ... ALL_CONTRIBUTION_TESTS_PASSED (24 checks)
 npx supabase db query --remote -f supabase/tests/valuations.test.sql
@@ -40,7 +40,7 @@ npx supabase db query --remote -f supabase/tests/valuations.test.sql
 npx supabase db query --remote -f supabase/tests/nav.test.sql
 # Expected: ERROR ... ALL_NAV_TESTS_PASSED (19 checks)
 npx supabase db query --remote -f supabase/tests/fees.test.sql
-# Expected: ERROR ... ALL_FEE_TESTS_PASSED (11 checks)
+# Expected: ERROR ... ALL_FEE_TESTS_PASSED (13 checks)
 npx supabase db query --remote -f supabase/tests/client_portal.test.sql
 # Expected: ERROR ... ALL_CLIENT_PORTAL_TESTS_PASSED (13 checks)
 npx supabase db query --remote -f supabase/tests/reset.test.sql

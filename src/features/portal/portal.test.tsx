@@ -11,9 +11,8 @@ import {
   supabaseMock,
 } from '../../../tests/mocks/supabase';
 import { renderRoute } from '../../../tests/utils';
-import type { ClientActivity, ClientCycle, ClientLot } from './api';
-import { clientPosition, describeClientActivity, toCsv } from './logic';
-import { Decimal } from '@/lib/finance';
+import type { ClientActivity, ClientContribution, ClientCycle } from './api';
+import { describeClientActivity, holdingRows, returnOn, toCsv } from './logic';
 
 const CLIENT = makeProfile({
   id: '00000000-0000-4000-8000-0000000000c1',
@@ -22,6 +21,8 @@ const CLIENT = makeProfile({
 });
 const CYCLE_ID = '00000000-0000-4000-8000-00000000cc01';
 
+// Owner's example (Module 15): ₹1,00,000 at ₹100; market NAV 130 with a 50% performance fee → the client
+// sees NAV ₹115, profit ₹15,000, admin fee ₹1,000 and final profit ₹14,000. No performance fee anywhere.
 const cycle = (o: Partial<ClientCycle> = {}): ClientCycle => ({
   cycle_id: CYCLE_ID,
   cycle_name: 'FY27 Growth Cycle',
@@ -29,35 +30,50 @@ const cycle = (o: Partial<ClientCycle> = {}): ClientCycle => ({
   start_date: '2026-12-01',
   end_date: '2027-11-30',
   base_nav: '100.00000000',
-  current_fee_rate: '0.200000',
   units: '1000.00000000',
   net_contributed: '100000.00',
   latest_nav_date: '2026-11-12T09:30:00Z',
-  latest_gross_nav: '116.00000000',
-  lots_contributed: '100000.00',
-  gross_value: '116000.00',
-  fee_amount: '3200.00',
-  net_value: '112800.00',
-  loss_to_recover: '0.00',
+  latest_nav: '115.00000000',
+  current_value: '115000.00',
+  profit: '15000.00',
+  admin_fee: '1000.00',
+  final_profit: '14000.00',
+  final_value: '114000.00',
   ...o,
 });
 
-const LOT: ClientLot = {
-  contribution_id: '00000000-0000-4000-8000-0000000000d1',
-  received_at: '2026-11-01T10:00:00Z',
-  amount: '100000.00',
-  units: '1000.00000000',
-  entry_nav: '100.00000000',
-  reference_hwm: '100.00000000',
-  fee_rate: '0.200000',
-  nav_date: '2026-11-12T09:30:00Z',
-  gross_nav_per_unit: '116.00000000',
-  gross_value: '116000.00',
-  eligible_profit_per_unit: '16.00000000',
-  fee_amount: '3200.00',
-  net_value: '112800.00',
-  loss_to_recover: '0.00',
-};
+const CONTRIBUTIONS: ClientContribution[] = [
+  {
+    id: 'd1',
+    cycle_id: CYCLE_ID,
+    cycle_name: 'FY27 Growth Cycle',
+    amount: '100000.00',
+    received_at: '2026-11-01T10:00:00Z',
+    method: 'bank_transfer',
+    reference_number: 'UTR-1',
+    status: 'verified',
+    applicable_nav: '100.00000000',
+    units_issued: '1000.00000000',
+    verified_at: '2026-11-02T10:00:00Z',
+    rejected_at: null,
+    reversed_at: null,
+  },
+  {
+    id: 'd2',
+    cycle_id: CYCLE_ID,
+    cycle_name: 'FY27 Growth Cycle',
+    amount: '2500.00',
+    received_at: '2026-11-13T10:00:00Z',
+    method: 'cheque',
+    reference_number: null,
+    status: 'pending',
+    applicable_nav: null,
+    units_issued: null,
+    verified_at: null,
+    rejected_at: null,
+    reversed_at: null,
+  },
+];
 
 const ACTIVITY: ClientActivity[] = [
   {
@@ -66,7 +82,7 @@ const ACTIVITY: ClientActivity[] = [
     cycle_name: 'FY27 Growth Cycle',
     amount: null,
     units: null,
-    nav: '116.00000000',
+    nav: '115.00000000',
   },
   {
     occurred_at: '2026-11-02T10:00:00Z',
@@ -78,62 +94,29 @@ const ACTIVITY: ClientActivity[] = [
   },
 ];
 
-function mockPortal({ cycles = [cycle()], lots = [LOT] } = {}) {
+function mockPortal({ cycles = [cycle()] } = {}) {
   supabaseMock.rpc.mockImplementation(async (fn: string) => {
     switch (fn) {
       case 'client_my_cycles':
         return { data: cycles, error: null };
-      case 'client_my_lot_values':
-        return { data: lots, error: null };
       case 'client_nav_history':
         return {
-          data: [{ nav_date: '2026-11-12T09:30:00Z', gross_nav_per_unit: '116.00000000' }],
+          data: [{ nav_date: '2026-11-12T09:30:00Z', nav_per_unit: '115.00000000' }],
           error: null,
         };
       case 'client_my_activity':
         return { data: ACTIVITY, error: null };
       case 'client_my_contributions':
-        return {
-          data: [
-            {
-              id: 'd1',
-              cycle_id: CYCLE_ID,
-              cycle_name: 'FY27 Growth Cycle',
-              amount: '100000.00',
-              received_at: '2026-11-01T10:00:00Z',
-              method: 'bank_transfer',
-              reference_number: 'UTR-1',
-              status: 'verified',
-              applicable_nav: '100.00000000',
-              units_issued: '1000.00000000',
-              locked_fee_rate: '0.200000',
-              verified_at: '2026-11-02T10:00:00Z',
-              rejected_at: null,
-              reversed_at: null,
-            },
-            {
-              id: 'd2',
-              cycle_id: CYCLE_ID,
-              cycle_name: 'FY27 Growth Cycle',
-              amount: '2500.00',
-              received_at: '2026-11-13T10:00:00Z',
-              method: 'cheque',
-              reference_number: null,
-              status: 'pending',
-              applicable_nav: null,
-              units_issued: null,
-              locked_fee_rate: null,
-              verified_at: null,
-              rejected_at: null,
-              reversed_at: null,
-            },
-          ],
-          error: null,
-        };
+        return { data: CONTRIBUTIONS, error: null };
       default:
         return { data: null, error: null };
     }
   });
+}
+
+/** Clients must never see the performance fee or the market (gross) NAV. */
+function expectNoPerformanceFee() {
+  expect(document.body.textContent).not.toMatch(/performance fee|gross|high-water|130\.00/i);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -150,13 +133,15 @@ describe('portal logic', () => {
     expect(csv).toBe('A,B\r\n"\'=HYPERLINK(""x"")","a,b"\r\n-100.50,\'@cmd\r\n"line\nbreak",\r\n');
   });
 
-  it('computes the client position on the same lots', () => {
-    const p = clientPosition(cycle(), new Decimal('1000'));
-    expect(p.pnl?.toFixed(2)).toBe('12800.00');
-    expect(p.pnlReturn?.toFixed(6)).toBe('0.128000');
-    expect(p.netNavPerUnit?.toFixed(8)).toBe('112.80000000');
-    expect(p.hasUnvaluedLots).toBe(false);
-    expect(clientPosition(cycle({ net_contributed: '102500.00' }), null).hasUnvaluedLots).toBe(true);
+  it('values each verified contribution at the current NAV', () => {
+    const rows = holdingRows(CONTRIBUTIONS, cycle());
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.value.toFixed(2)).toBe('115000.00');
+    expect(rows[0]!.profit.toFixed(2)).toBe('15000.00');
+    expect(returnOn('14000.00', '100000.00')?.toFixed(6)).toBe('0.140000');
+    expect(returnOn('1', '0')).toBeNull();
+    // Before the first NAV, holdings are valued at the starting NAV.
+    expect(holdingRows(CONTRIBUTIONS, cycle({ latest_nav: null }))[0]!.profit.toFixed(2)).toBe('0.00');
   });
 
   it('describes activity in plain language', () => {
@@ -179,14 +164,16 @@ describe('client portal pages', () => {
     const figures = await screen.findByRole('region', { name: 'Your investment' });
     expect(within(figures).getByText('₹1,00,000.00')).toBeInTheDocument();
     expect(within(figures).getByText('1,000.0000')).toBeInTheDocument();
-    expect(within(figures).getByText('₹116.0000')).toBeInTheDocument();
-    // Net value waits for the lot data.
-    expect(await within(figures).findByText('₹1,12,800.00')).toBeInTheDocument();
-    expect(await within(figures).findByText('+₹12,800.00')).toBeInTheDocument();
-    expect(within(figures).getByText('Your net NAV ₹112.8000 per unit')).toBeInTheDocument();
+    expect(within(figures).getByText('₹115.0000')).toBeInTheDocument();
+    expect(within(figures).getByText('₹1,15,000.00')).toBeInTheDocument();
+    expect(within(figures).getByText('+₹15,000.00')).toBeInTheDocument();
+    expect(within(figures).getByText('₹1,000.00')).toBeInTheDocument();
+    expect(within(figures).getByText('+₹14,000.00')).toBeInTheDocument();
+    expect(within(figures).getByText('+14.00%')).toBeInTheDocument();
     // Portal disclaimer (in addition to the site-wide footer notice).
-    expect(screen.getByText(/accrued for information only/)).toBeInTheDocument();
-    expect(supabaseMock.rpc).toHaveBeenCalledWith('client_my_lot_values', { p_cycle_id: CYCLE_ID });
+    expect(screen.getByText(/admin fee is shown for information/)).toBeInTheDocument();
+    expect(supabaseMock.rpc).toHaveBeenCalledWith('client_nav_history', { p_cycle_id: CYCLE_ID });
+    expectNoPerformanceFee();
     // The portal never queries admin tables directly.
     expect(
       executedQueries.some((q) => ['contributions', 'nav_snapshots', 'lot_fee_accruals'].includes(q.table)),
@@ -200,20 +187,21 @@ describe('client portal pages', () => {
     expect(await screen.findByText(/₹2,500.00 received/)).toBeInTheDocument();
   });
 
-  it('my investment explains each lot step by step', async () => {
+  it('my investment values each contribution and explains the admin fee', async () => {
     mockPortal();
     renderRoute('/client/investment');
-    expect(await screen.findByRole('cell', { name: '₹1,12,800.00' })).toBeInTheDocument();
-    const breakdown = screen.getByRole('region', { name: /Lot of ₹1,00,000.00/ });
-    expect(within(breakdown).getByText(/Profit above the high-water mark is/)).toHaveTextContent('₹16.0000');
-    expect(within(breakdown).getByText(/Profit above the high-water mark is/)).toHaveTextContent('₹3,200.00');
+    expect(await screen.findByRole('cell', { name: '₹1,15,000.00' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: '+₹15,000.00' })).toBeInTheDocument();
+    expect(screen.getByText(/so your final profit/)).toHaveTextContent('₹1,000.00');
+    expect(screen.getByText(/so your final profit/)).toHaveTextContent('+₹14,000.00');
     expect(screen.getByRole('heading', { name: 'Awaiting verification' })).toBeInTheDocument();
+    expectNoPerformanceFee();
   });
 
   it('activity lists own events', async () => {
     mockPortal();
     renderRoute('/client/activity');
-    expect(await screen.findByText(/NAV published: ₹116.0000 per unit/)).toBeInTheDocument();
+    expect(await screen.findByText(/NAV published: ₹115.0000 per unit$/)).toBeInTheDocument();
   });
 
   describe('statements', () => {
@@ -234,6 +222,7 @@ describe('client portal pages', () => {
       const { user } = renderRoute('/client/statements');
       expect(await screen.findByRole('heading', { name: 'Investment statement' })).toBeInTheDocument();
       expect(screen.getByText(/not an official account statement/)).toBeInTheDocument();
+      expectNoPerformanceFee();
 
       await user.click(screen.getByRole('button', { name: 'Print / save as PDF' }));
       expect(print).toHaveBeenCalled();
@@ -242,9 +231,11 @@ describe('client portal pages', () => {
       expect(created).toHaveLength(1);
       const text = await created[0]!.text();
       expect(text).toContain('Rahul (fictional)');
-      expect(text).toContain('112800.00');
+      expect(text).toContain('115000.00');
+      expect(text).toContain('14000.00');
       expect(text).toContain('UTR-1');
       expect(text).toContain('not live market data');
+      expect(text).not.toMatch(/performance|fee rate|gross/i);
     });
   });
 

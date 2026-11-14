@@ -13,13 +13,22 @@ import { InfoTip } from '@/components/ui/Tooltip';
 import { EntityHistory } from '@/features/audit/EntityHistory';
 import { useCycle } from '@/features/cycles/queries';
 import { LotAccrualTable } from '@/features/fees/components/LotAccrualTable';
+import { PositionTable } from '@/features/fees/components/PositionTable';
 import { useValuation } from '@/features/portfolio/queries';
-import { formatDateTime, formatINR, formatNav, formatUnits } from '@/lib/format';
+import {
+  formatDateTime,
+  formatINR,
+  formatNav,
+  formatRateAsPercent,
+  formatSignedINR,
+  formatUnits,
+} from '@/lib/format';
 import { isUuid } from '@/lib/utils/uuid';
 import { CalculateNavDialog } from '../components/CalculateNavDialog';
 import { NavStatusBadge } from '../components/NavStatusBadge';
 import { describeNavEntry } from '../logic';
 import { useDiscardNav, useNavSnapshot, usePublishNav } from '../queries';
+import { clientNav, FUND_LEVEL } from '../types';
 
 export function NavSnapshotPage() {
   const { snapshotId = '' } = useParams();
@@ -74,6 +83,7 @@ export function NavSnapshotPage() {
   }
 
   const v = valuation.data?.valuation;
+  const fundLevel = s.calculation_version === FUND_LEVEL;
   const rows: [string, string][] = v
     ? [
         ['Holdings value', formatINR(v.holdings_value)],
@@ -166,13 +176,42 @@ export function NavSnapshotPage() {
                   </dt>
                   <dd className="num font-medium">{formatUnits(s.total_outstanding_units)}</dd>
                 </div>
-                <div className="flex justify-between gap-3 border-t border-line pt-2 text-base">
-                  <dt className="flex items-center gap-1 font-semibold">
-                    = Gross NAV per unit <InfoTip term="grossNav" />
+                <div className="flex justify-between gap-3 border-t border-line pt-2">
+                  <dt className="flex items-center gap-1 font-medium">
+                    = {fundLevel ? 'Market NAV per unit' : 'Gross NAV per unit'} <InfoTip term="grossNav" />
                   </dt>
-                  <dd className="num font-semibold">{formatNav(s.gross_nav_per_unit, { decimals: 8 })}</dd>
+                  <dd className="num font-medium">{formatNav(s.gross_nav_per_unit, { decimals: 8 })}</dd>
                 </div>
-                {s.performance_fee_amount !== null && (
+                {fundLevel && s.performance_fee_amount !== null && (
+                  <>
+                    <div className="flex justify-between gap-3 pt-4">
+                      <dt className="text-muted">Net asset value</dt>
+                      <dd className="num">{formatINR(s.gross_net_asset_value)}</dd>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <dt className="text-muted">− Money invested (as of this NAV)</dt>
+                      <dd className="num">{formatINR(s.net_contributed)}</dd>
+                    </div>
+                    <div className="flex justify-between gap-3 border-t border-line pt-2">
+                      <dt className="font-medium">= Cycle profit</dt>
+                      <dd className="num font-medium">{formatSignedINR(s.profit_before_fee)}</dd>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <dt className="flex items-center gap-1 text-muted">
+                        Performance fee ({formatRateAsPercent(s.performance_fee_rate)} of profit, none on a
+                        loss) <InfoTip term="performanceFee" />
+                      </dt>
+                      <dd className="num">{formatINR(s.performance_fee_amount)}</dd>
+                    </div>
+                    <div className="flex justify-between gap-3 border-t border-line pt-2 text-base">
+                      <dt className="flex items-center gap-1 font-semibold">
+                        NAV = (net asset value − fee) ÷ units <InfoTip term="netNav" />
+                      </dt>
+                      <dd className="num font-semibold">{formatNav(s.net_nav_per_unit, { decimals: 8 })}</dd>
+                    </div>
+                  </>
+                )}
+                {!fundLevel && s.performance_fee_amount !== null && (
                   <>
                     <div className="flex justify-between gap-3 pt-2">
                       <dt className="flex items-center gap-1 text-muted">
@@ -190,8 +229,11 @@ export function NavSnapshotPage() {
                 )}
               </dl>
               <p className="mt-4 text-xs text-muted">
-                Units are those outstanding at the valuation time. NAV is rounded half-up to 8 decimals. The
-                fee is accrued per contribution lot above its starting NAV (see the table below).{' '}
+                Units and money invested are those on the ledger at the valuation time. NAV is rounded half-up
+                to 8 decimals.{' '}
+                {fundLevel
+                  ? 'Clients see only the NAV after the performance fee, never the fee itself.'
+                  : 'Earlier per-lot method: the fee was accrued per contribution lot above its starting NAV.'}{' '}
                 <Link
                   to={`/admin/portfolio/valuations/${s.valuation_id}`}
                   className="font-medium text-emerald-700 hover:underline"
@@ -202,13 +244,23 @@ export function NavSnapshotPage() {
               </p>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader
-              title="Fee per contribution lot"
-              description="Indicative accrual at this NAV. Frozen once the NAV is published."
-            />
-            <LotAccrualTable snapshotId={s.id} />
-          </Card>
+          {fundLevel ? (
+            <Card>
+              <CardHeader
+                title="Client positions at this NAV"
+                description="Value, profit and admin fee per client. The admin fee shown is the cycle's current fee."
+              />
+              <PositionTable snapshotId={s.id} />
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader
+                title="Fee per contribution lot"
+                description="Indicative accrual at this NAV (earlier per-lot method). Frozen once published."
+              />
+              <LotAccrualTable snapshotId={s.id} />
+            </Card>
+          )}
         </div>
 
         <div className="space-y-6">
@@ -248,20 +300,28 @@ export function NavSnapshotPage() {
         open={publishOpen}
         onOpenChange={setPublishOpen}
         title="Publish this NAV?"
-        description="It becomes permanent and is used for contributions received on or after its date. Corrections create a new snapshot."
+        description="It becomes permanent, clients see it, and money received from the next day is converted to units at it. Corrections create a new snapshot."
         confirmLabel="Publish NAV"
         requireReason
         reasonLabel="Publish note (recorded in the audit log)"
         onConfirm={async (reason) => {
           await publish.mutateAsync(reason);
-          toast({ title: 'NAV published', description: formatNav(s.gross_nav_per_unit, { decimals: 8 }) });
+          toast({ title: 'NAV published', description: formatNav(clientNav(s), { decimals: 8 }) });
         }}
       >
         <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-[var(--radius-control)] bg-surface-muted p-3 text-sm">
           <dt className="text-muted">As of</dt>
           <dd className="text-right num">{formatDateTime(s.nav_date)}</dd>
-          <dt className="text-muted">Gross NAV per unit</dt>
-          <dd className="text-right num font-semibold">{formatNav(s.gross_nav_per_unit, { decimals: 8 })}</dd>
+          <dt className="text-muted">Market NAV</dt>
+          <dd className="text-right num">{formatNav(s.gross_nav_per_unit, { decimals: 8 })}</dd>
+          {fundLevel && (
+            <>
+              <dt className="text-muted">Performance fee</dt>
+              <dd className="text-right num">{formatINR(s.performance_fee_amount)}</dd>
+            </>
+          )}
+          <dt className="text-muted">NAV clients see</dt>
+          <dd className="text-right num font-semibold">{formatNav(clientNav(s), { decimals: 8 })}</dd>
         </dl>
       </ConfirmDialog>
       <ConfirmDialog

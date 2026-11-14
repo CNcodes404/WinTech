@@ -32,6 +32,7 @@ const cycleRow = {
   pending_fee_rate: null,
   pending_fee_version: null,
   pending_fee_effective_from: null,
+  admin_fee_amount: '1000.00',
 };
 
 const snap = (o: Partial<NavSnapshot> = {}): NavSnapshot => ({
@@ -44,6 +45,9 @@ const snap = (o: Partial<NavSnapshot> = {}): NavSnapshot => ({
   gross_nav_per_unit: '105.00000000',
   net_nav_per_unit: null,
   performance_fee_amount: null,
+  performance_fee_rate: null,
+  net_contributed: null,
+  profit_before_fee: null,
   calculation_version: 'gross_v1',
   status: 'published',
   corrects_snapshot_id: null,
@@ -146,7 +150,24 @@ describe('NavPage', () => {
     );
     expect(screen.getAllByText('Published').length).toBeGreaterThan(0);
     // The chart is lazy-loaded.
-    expect(await screen.findByRole('img', { name: /Gross NAV per unit from ₹105.0000/ })).toBeInTheDocument();
+    expect(await screen.findByRole('img', { name: /^NAV per unit from ₹105.0000/ })).toBeInTheDocument();
+  });
+
+  it('shows the NAV clients see (after performance fee) next to the market NAV', async () => {
+    mockNav([
+      snap({
+        gross_nav_per_unit: '130.00000000',
+        net_nav_per_unit: '115.00000000',
+        performance_fee_amount: '15000.00',
+        calculation_version: 'fund_level_v2',
+      }),
+    ]);
+    renderRoute('/admin/nav');
+    const latest = await screen.findByRole('region', { name: 'Latest published NAV' });
+    expect(await within(latest).findByText('₹115.0000')).toBeInTheDocument();
+    expect(within(latest).getByText('+15.00% vs base')).toBeInTheDocument();
+    expect(within(latest).getByText('₹130.0000')).toBeInTheDocument();
+    expect(within(latest).getByText('Before the ₹15,000.00 performance fee')).toBeInTheDocument();
   });
 
   it('calculates a draft from the latest approved valuation', async () => {

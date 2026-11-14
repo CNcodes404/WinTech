@@ -37,6 +37,7 @@ const cycle = (overrides: Partial<CycleOverview> = {}): CycleOverview => ({
   pending_fee_rate: null,
   pending_fee_version: null,
   pending_fee_effective_from: null,
+  admin_fee_amount: '1000.00',
   ...overrides,
 });
 
@@ -149,6 +150,10 @@ describe('CyclesPage', () => {
 
     await user.type(within(dialog).getByLabelText(/Cycle name/), 'FY27 Growth Cycle');
     await user.type(within(dialog).getByLabelText(/End date/), '2026-01-01');
+    // Defaults: 20% performance fee and ₹1,000 admin fee.
+    expect(within(dialog).getByLabelText(/Performance fee/)).toHaveValue('20');
+    expect(within(dialog).getByLabelText(/Admin fee/)).toHaveValue('1000');
+    await user.clear(within(dialog).getByLabelText(/Performance fee/));
     await user.type(within(dialog).getByLabelText(/Performance fee/), '100');
     await user.click(within(dialog).getByRole('button', { name: 'Create cycle' }));
     expect(await within(dialog).findByText('The end date must be after the start date.')).toBeInTheDocument();
@@ -162,7 +167,13 @@ describe('CyclesPage', () => {
     await user.type(within(dialog).getByLabelText(/Base NAV/), '100.12345678');
     await user.clear(within(dialog).getByLabelText(/Performance fee/));
     await user.type(within(dialog).getByLabelText(/Performance fee/), '17.5');
-    expect(within(dialog).getByText(/the fee is/)).toHaveTextContent('₹2.80');
+    await user.clear(within(dialog).getByLabelText(/Admin fee/));
+    await user.type(within(dialog).getByLabelText(/Admin fee/), '1500.50');
+    // 100 → 130: fee 17.5% of ₹30,000 = ₹5,250 → profit ₹24,750 → final ₹23,249.50 after the admin fee.
+    const example = within(dialog).getByText(/Example at/);
+    expect(example).toHaveTextContent('₹5,250.00');
+    expect(example).toHaveTextContent('₹24,750.00');
+    expect(example).toHaveTextContent('₹23,249.50');
     await user.click(within(dialog).getByRole('button', { name: 'Create cycle' }));
 
     await waitFor(() =>
@@ -173,6 +184,7 @@ describe('CyclesPage', () => {
         p_end_date: '2099-12-31',
         p_base_nav: '100.12345678',
         p_fee_rate: '0.175',
+        p_admin_fee: '1500.50',
       }),
     );
     await waitFor(() => expect(router.state.location.pathname).toBe(`/admin/cycles/${CYCLE_ID}`));
@@ -218,8 +230,33 @@ describe('CycleDetailPage', () => {
     );
   });
 
-  it('changes the fee rate immediately or from a future date', async () => {
+  it('locks the performance fee once active; the admin fee stays editable', async () => {
     mockCycleData(cycle({ status: 'active' }));
+    const { user } = renderRoute(`/admin/cycles/${CYCLE_ID}`);
+    expect(await screen.findByText('Locked since trading started')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Change rate' })).toBeNull();
+    expect(screen.getByText('₹1,000.00')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Change admin fee' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Change admin fee' });
+    await user.clear(within(dialog).getByLabelText(/Admin fee/));
+    await user.type(within(dialog).getByLabelText(/Admin fee/), '1.234');
+    await user.type(within(dialog).getByLabelText(/Reason/), 'Revised admin cost');
+    await user.click(within(dialog).getByRole('button', { name: 'Save admin fee' }));
+    expect(await within(dialog).findByText(/Enter an amount in ₹/)).toBeInTheDocument();
+    await user.clear(within(dialog).getByLabelText(/Admin fee/));
+    await user.type(within(dialog).getByLabelText(/Admin fee/), '1200');
+    await user.click(within(dialog).getByRole('button', { name: 'Save admin fee' }));
+    await waitFor(() =>
+      expect(supabaseMock.rpc).toHaveBeenCalledWith('admin_set_admin_fee', {
+        p_cycle_id: CYCLE_ID,
+        p_amount: '1200',
+        p_reason: 'Revised admin cost',
+      }),
+    );
+  });
+
+  it('changes the fee rate immediately or from a future date (before trading)', async () => {
+    mockCycleData(cycle({ status: 'open' }));
     const { user } = renderRoute(`/admin/cycles/${CYCLE_ID}`);
     await user.click(await screen.findByRole('button', { name: 'Change rate' }));
     let dialog = await screen.findByRole('dialog', { name: 'Change performance-fee rate' });

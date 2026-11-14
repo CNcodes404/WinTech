@@ -1,4 +1,4 @@
-import { ChevronLeft, Clock, Pencil, Percent } from 'lucide-react';
+import { ChevronLeft, Clock, IndianRupee, Lock, Pencil, Percent } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -11,15 +11,16 @@ import { useToast } from '@/components/ui/toast-context';
 import { InfoTip } from '@/components/ui/Tooltip';
 import { EntityHistory } from '@/features/audit/EntityHistory';
 import { CycleUnitStats } from '@/features/contributions/components/CycleUnitStats';
-import { formatDate, formatDateTime, formatNav, formatRateAsPercent } from '@/lib/format';
+import { formatDate, formatDateTime, formatINR, formatNav, formatRateAsPercent } from '@/lib/format';
 import { isUuid } from '@/lib/utils/uuid';
+import { AdminFeeDialog } from '../components/AdminFeeDialog';
 import { ChangeFeeDialog } from '../components/ChangeFeeDialog';
 import { CycleStatusBadge } from '../components/CycleStatusBadge';
 import { EditCycleDialog } from '../components/EditCycleDialog';
 import { FeeTermsTable } from '../components/FeeTermsTable';
 import { describeCycleEntry } from '../logic';
 import { useCycle, useSetCycleStatus } from '../queries';
-import { NEXT_STATUS } from '../types';
+import { feeRateEditable, NEXT_STATUS } from '../types';
 
 function BackLink() {
   return (
@@ -40,6 +41,7 @@ export function CycleDetailPage() {
   const { toast } = useToast();
   const [editOpen, setEditOpen] = useState(false);
   const [feeOpen, setFeeOpen] = useState(false);
+  const [adminFeeOpen, setAdminFeeOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
 
   if (!isUuid(cycleId) || (!isPending && !isError && !cycle)) {
@@ -74,6 +76,7 @@ export function CycleDetailPage() {
 
   const step = NEXT_STATUS[cycle.status];
   const editable = cycle.status !== 'closed' && cycle.status !== 'settled';
+  const rateEditable = feeRateEditable(cycle.status);
 
   return (
     <>
@@ -132,13 +135,18 @@ export function CycleDetailPage() {
           <Card>
             <CardHeader
               title="Performance fee"
-              description="Versioned rates. Each contribution lot keeps the rate in force when it was issued."
+              description="Taken from the cycle’s total profit before the NAV is calculated. Never shown to clients."
               actions={
-                editable && (
+                rateEditable ? (
                   <Button size="sm" variant="secondary" onClick={() => setFeeOpen(true)}>
                     <Percent aria-hidden="true" className="size-4" />
                     Change rate
                   </Button>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-xs text-muted">
+                    <Lock aria-hidden="true" className="size-3.5" />
+                    Locked since trading started
+                  </span>
                 )
               }
             />
@@ -159,7 +167,26 @@ export function CycleDetailPage() {
                 </p>
               )}
             </CardContent>
-            <FeeTermsTable cycle={cycle} canChange={editable} />
+            <FeeTermsTable cycle={cycle} canChange={rateEditable} />
+          </Card>
+
+          <Card>
+            <CardHeader
+              title="Admin fee"
+              description="A fixed amount per client for this cycle, deducted even when there is no profit. Clients see it."
+              actions={
+                cycle.status !== 'settled' && (
+                  <Button size="sm" variant="secondary" onClick={() => setAdminFeeOpen(true)}>
+                    <IndianRupee aria-hidden="true" className="size-4" />
+                    Change admin fee
+                  </Button>
+                )
+              }
+            />
+            <CardContent>
+              <p className="num text-2xl font-semibold">{formatINR(cycle.admin_fee_amount)}</p>
+              <p className="text-xs text-muted">per client · changes are recorded in the cycle history</p>
+            </CardContent>
           </Card>
         </div>
 
@@ -171,6 +198,7 @@ export function CycleDetailPage() {
 
       {editOpen && <EditCycleDialog cycle={cycle} onClose={() => setEditOpen(false)} />}
       {feeOpen && <ChangeFeeDialog cycle={cycle} onClose={() => setFeeOpen(false)} />}
+      {adminFeeOpen && <AdminFeeDialog cycle={cycle} onClose={() => setAdminFeeOpen(false)} />}
       {step && (
         <ConfirmDialog
           open={statusOpen}

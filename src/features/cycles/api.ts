@@ -21,6 +21,7 @@ const OVERVIEW_COLUMNS = [
   'pending_fee_rate::text',
   'pending_fee_version',
   'pending_fee_effective_from',
+  'admin_fee_amount::text',
 ].join(', ');
 
 export async function listCycles(): Promise<CycleOverview[]> {
@@ -64,7 +65,9 @@ export interface CycleInput {
   baseNav: string;
 }
 
-export async function createCycle(input: CycleInput & { feeRate: string }): Promise<string> {
+export async function createCycle(
+  input: CycleInput & { feeRate: string; adminFee: string },
+): Promise<string> {
   const { data, error } = await supabase.rpc('admin_create_cycle', {
     p_name: input.name,
     p_description: input.description,
@@ -72,9 +75,20 @@ export async function createCycle(input: CycleInput & { feeRate: string }): Prom
     p_end_date: input.endDate,
     p_base_nav: numericParam(input.baseNav),
     p_fee_rate: numericParam(input.feeRate),
+    p_admin_fee: numericParam(input.adminFee),
   });
   if (error) throw toUserFacingDbError(error, 'The cycle could not be created. Please try again.');
   return data as string;
+}
+
+/** Flat ₹ admin fee per client for this cycle. Editable until the cycle is settled (audited). */
+export async function setAdminFee(cycleId: string, amount: string, reason: string): Promise<void> {
+  const { error } = await supabase.rpc('admin_set_admin_fee', {
+    p_cycle_id: cycleId,
+    p_amount: numericParam(amount),
+    p_reason: reason,
+  });
+  if (error) throw toUserFacingDbError(error);
 }
 
 export async function updateCycle(id: string, input: CycleInput & { reason: string }): Promise<void> {

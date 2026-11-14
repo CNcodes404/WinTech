@@ -381,6 +381,9 @@ export type Database = {
       };
       fee_crystallisations: {
         Row: {
+          admin_fee_per_client: number;
+          admin_fee_total: number;
+          clients_charged: number;
           cycle_id: string;
           id: string;
           net_nav_per_unit: number;
@@ -391,6 +394,9 @@ export type Database = {
           total_fee_amount: number;
         };
         Insert: {
+          admin_fee_per_client?: number;
+          admin_fee_total?: number;
+          clients_charged?: number;
           cycle_id: string;
           id?: string;
           net_nav_per_unit: number;
@@ -401,6 +407,9 @@ export type Database = {
           total_fee_amount: number;
         };
         Update: {
+          admin_fee_per_client?: number;
+          admin_fee_total?: number;
+          clients_charged?: number;
           cycle_id?: string;
           id?: string;
           net_nav_per_unit?: number;
@@ -443,6 +452,13 @@ export type Database = {
             foreignKeyName: 'fee_crystallisations_snapshot_id_fkey';
             columns: ['snapshot_id'];
             isOneToOne: false;
+            referencedRelation: 'client_position_report';
+            referencedColumns: ['snapshot_id'];
+          },
+          {
+            foreignKeyName: 'fee_crystallisations_snapshot_id_fkey';
+            columns: ['snapshot_id'];
+            isOneToOne: false;
             referencedRelation: 'nav_snapshots';
             referencedColumns: ['id'];
           },
@@ -450,6 +466,7 @@ export type Database = {
       };
       investment_cycles: {
         Row: {
+          admin_fee_amount: number;
           base_nav: number;
           created_at: string;
           created_by: string;
@@ -463,6 +480,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          admin_fee_amount?: number;
           base_nav?: number;
           created_at?: string;
           created_by: string;
@@ -476,6 +494,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          admin_fee_amount?: number;
           base_nav?: number;
           created_at?: string;
           created_by?: string;
@@ -603,6 +622,13 @@ export type Database = {
             foreignKeyName: 'lot_fee_accruals_snapshot_id_fkey';
             columns: ['snapshot_id'];
             isOneToOne: false;
+            referencedRelation: 'client_position_report';
+            referencedColumns: ['snapshot_id'];
+          },
+          {
+            foreignKeyName: 'lot_fee_accruals_snapshot_id_fkey';
+            columns: ['snapshot_id'];
+            isOneToOne: false;
             referencedRelation: 'nav_snapshots';
             referencedColumns: ['id'];
           },
@@ -623,9 +649,11 @@ export type Database = {
           gross_net_asset_value: number;
           id: string;
           nav_date: string;
+          net_contributed: number | null;
           net_nav_per_unit: number | null;
           performance_fee_amount: number | null;
           performance_fee_rate: number | null;
+          profit_before_fee: number | null;
           publish_reason: string | null;
           published_at: string | null;
           published_by: string | null;
@@ -648,9 +676,11 @@ export type Database = {
           gross_net_asset_value: number;
           id?: string;
           nav_date: string;
+          net_contributed?: number | null;
           net_nav_per_unit?: number | null;
           performance_fee_amount?: number | null;
           performance_fee_rate?: number | null;
+          profit_before_fee?: number | null;
           publish_reason?: string | null;
           published_at?: string | null;
           published_by?: string | null;
@@ -673,9 +703,11 @@ export type Database = {
           gross_net_asset_value?: number;
           id?: string;
           nav_date?: string;
+          net_contributed?: number | null;
           net_nav_per_unit?: number | null;
           performance_fee_amount?: number | null;
           performance_fee_rate?: number | null;
+          profit_before_fee?: number | null;
           publish_reason?: string | null;
           published_at?: string | null;
           published_by?: string | null;
@@ -689,8 +721,22 @@ export type Database = {
             foreignKeyName: 'nav_snapshots_corrected_by_snapshot_id_fkey';
             columns: ['corrected_by_snapshot_id'];
             isOneToOne: false;
+            referencedRelation: 'client_position_report';
+            referencedColumns: ['snapshot_id'];
+          },
+          {
+            foreignKeyName: 'nav_snapshots_corrected_by_snapshot_id_fkey';
+            columns: ['corrected_by_snapshot_id'];
+            isOneToOne: false;
             referencedRelation: 'nav_snapshots';
             referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'nav_snapshots_corrects_snapshot_id_fkey';
+            columns: ['corrects_snapshot_id'];
+            isOneToOne: false;
+            referencedRelation: 'client_position_report';
+            referencedColumns: ['snapshot_id'];
           },
           {
             foreignKeyName: 'nav_snapshots_corrects_snapshot_id_fkey';
@@ -995,6 +1041,58 @@ export type Database = {
           },
         ];
       };
+      client_position_report: {
+        Row: {
+          admin_fee: number | null;
+          client_email: string | null;
+          client_id: string | null;
+          client_name: string | null;
+          contributed: number | null;
+          cycle_id: string | null;
+          final_profit: number | null;
+          final_value: number | null;
+          gross_nav_per_unit: number | null;
+          gross_value: number | null;
+          nav_date: string | null;
+          net_nav_per_unit: number | null;
+          net_value: number | null;
+          performance_fee_share: number | null;
+          profit: number | null;
+          snapshot_id: string | null;
+          snapshot_status: Database['public']['Enums']['nav_snapshot_status'] | null;
+          units: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'client_unit_allocations_client_id_fkey';
+            columns: ['client_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'nav_snapshots_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_overview';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'nav_snapshots_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_unit_summary';
+            referencedColumns: ['cycle_id'];
+          },
+          {
+            foreignKeyName: 'nav_snapshots_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'investment_cycles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       contribution_register: {
         Row: {
           amount: number | null;
@@ -1071,6 +1169,7 @@ export type Database = {
       };
       cycle_overview: {
         Row: {
+          admin_fee_amount: number | null;
           base_nav: number | null;
           created_at: string | null;
           created_by: string | null;
@@ -1196,6 +1295,13 @@ export type Database = {
             foreignKeyName: 'lot_fee_accruals_snapshot_id_fkey';
             columns: ['snapshot_id'];
             isOneToOne: false;
+            referencedRelation: 'client_position_report';
+            referencedColumns: ['snapshot_id'];
+          },
+          {
+            foreignKeyName: 'lot_fee_accruals_snapshot_id_fkey';
+            columns: ['snapshot_id'];
+            isOneToOne: false;
             referencedRelation: 'nav_snapshots';
             referencedColumns: ['id'];
           },
@@ -1226,6 +1332,7 @@ export type Database = {
       };
       admin_create_cycle: {
         Args: {
+          p_admin_fee?: number;
           p_base_nav: number;
           p_description: string;
           p_end_date: string;
@@ -1249,6 +1356,7 @@ export type Database = {
           applicable_nav: string;
           fee_rate: string;
           fee_version: number;
+          nav_date: string;
           units: string;
         }[];
       };
@@ -1297,6 +1405,10 @@ export type Database = {
           p_valuation_id: string;
         };
         Returns: string;
+      };
+      admin_set_admin_fee: {
+        Args: { p_amount: number; p_cycle_id: string; p_reason: string };
+        Returns: undefined;
       };
       admin_set_cycle_status: {
         Args: {
@@ -1361,7 +1473,6 @@ export type Database = {
           cycle_id: string;
           cycle_name: string;
           id: string;
-          locked_fee_rate: string;
           method: string;
           received_at: string;
           reference_number: string;
@@ -1375,48 +1486,28 @@ export type Database = {
       client_my_cycles: {
         Args: never;
         Returns: {
+          admin_fee: string;
           base_nav: string;
-          current_fee_rate: string;
+          current_value: string;
           cycle_id: string;
           cycle_name: string;
           cycle_status: string;
           end_date: string;
-          fee_amount: string;
-          gross_value: string;
-          latest_gross_nav: string;
+          final_profit: string;
+          final_value: string;
+          latest_nav: string;
           latest_nav_date: string;
-          loss_to_recover: string;
-          lots_contributed: string;
           net_contributed: string;
-          net_value: string;
+          profit: string;
           start_date: string;
-          units: string;
-        }[];
-      };
-      client_my_lot_values: {
-        Args: { p_cycle_id: string };
-        Returns: {
-          amount: string;
-          contribution_id: string;
-          eligible_profit_per_unit: string;
-          entry_nav: string;
-          fee_amount: string;
-          fee_rate: string;
-          gross_nav_per_unit: string;
-          gross_value: string;
-          loss_to_recover: string;
-          nav_date: string;
-          net_value: string;
-          received_at: string;
-          reference_hwm: string;
           units: string;
         }[];
       };
       client_nav_history: {
         Args: { p_cycle_id: string };
         Returns: {
-          gross_nav_per_unit: string;
           nav_date: string;
+          nav_per_unit: string;
         }[];
       };
       complete_password_change: { Args: never; Returns: undefined };

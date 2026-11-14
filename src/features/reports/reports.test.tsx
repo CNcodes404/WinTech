@@ -40,6 +40,7 @@ const cycleRow = {
   pending_fee_rate: null,
   pending_fee_version: null,
   pending_fee_effective_from: null,
+  admin_fee_amount: '1000.00',
 };
 
 const registerRow = {
@@ -78,7 +79,10 @@ const snapshot = {
   gross_nav_per_unit: '116.00000000',
   net_nav_per_unit: '112.80000000',
   performance_fee_amount: '4800.00',
-  calculation_version: 'per_lot_hwm_v1',
+  performance_fee_rate: '0.200000',
+  net_contributed: '150000.00',
+  profit_before_fee: '24000.00',
+  calculation_version: 'fund_level_v2',
   status: 'published',
   corrects_snapshot_id: null,
   corrected_by_snapshot_id: null,
@@ -88,25 +92,23 @@ const snapshot = {
   corrected_at: null,
 };
 
-const lot = (client: string, name: string, fee: string) => ({
-  id: `l-${client}`,
+// Cycle: assets 1,74,000; invested 1,50,000 → profit 24,000; 20% fee 4,800 → NAV 112.80.
+const position = (client: string, name: string, units: string, contributed: string, net: string) => ({
   snapshot_id: SNAP_ID,
   client_id: client,
   client_name: name,
   client_email: `${name.split(' ')[0]!.toLowerCase()}@example.test`,
-  contribution_id: `d-${client}`,
-  received_at: '2026-11-01T10:00:00Z',
-  contributed_amount: '100000.00',
-  units: '1000.00000000',
-  entry_nav: '100.00000000',
-  reference_hwm: '100.00000000',
-  fee_rate: '0.200000',
+  units,
+  contributed,
   gross_nav_per_unit: '116.00000000',
-  gross_value: '116000.00',
-  eligible_profit_per_unit: '16.00000000',
-  fee_amount: fee,
-  net_value: '112800.00',
-  loss_to_recover: '0.00',
+  net_nav_per_unit: '112.80000000',
+  gross_value: (Number(units) * 116).toFixed(2),
+  net_value: net,
+  performance_fee_share: (Number(units) * 3.2).toFixed(2),
+  profit: (Number(net) - Number(contributed)).toFixed(2),
+  admin_fee: '1000.00',
+  final_profit: (Number(net) - Number(contributed) - 1000).toFixed(2),
+  final_value: (Number(net) - 1000).toFixed(2),
 });
 
 const audit = [
@@ -157,9 +159,12 @@ function mockReports() {
     if (table === 'cycle_overview') return { data: [cycleRow], error: null };
     if (table === 'contribution_register') return { data: [registerRow], error: null, count: 1 };
     if (table === 'nav_snapshots') return { data: [snapshot], error: null };
-    if (table === 'lot_fee_accrual_report')
+    if (table === 'client_position_report')
       return {
-        data: [lot(CLIENT_A, 'Rahul (fictional)', '3200.00'), lot(CLIENT_B, 'Amit (fictional)', '1600.00')],
+        data: [
+          position(CLIENT_A, 'Rahul (fictional)', '1000', '100000.00', '112800.00'),
+          position(CLIENT_B, 'Amit (fictional)', '500', '50000.00', '56400.00'),
+        ],
         error: null,
       };
     if (table === 'audit_logs') return { data: audit, error: null, count: 1 };
@@ -210,16 +215,22 @@ describe('Reports', () => {
     expect(text).toContain('UTR-1');
   });
 
-  it('client statement shows only the chosen client’s lots', async () => {
+  it('client statement shows exactly what the client sees (no performance fee)', async () => {
     const { user } = renderRoute('/admin/reports?tab=statement');
     await screen.findByRole('option', { name: /Rahul/ });
     await user.selectOptions(screen.getByLabelText('Client'), CLIENT_A);
     await screen.findByRole('option', { name: /FY27 Growth Cycle/ });
     await user.selectOptions(screen.getByLabelText('Cycle'), CYCLE_ID);
     expect(await screen.findByRole('heading', { name: 'Investment statement' })).toBeInTheDocument();
-    const lots = await screen.findByRole('table', { name: 'Valued lots' });
-    expect(within(lots).getByText('₹3,200.00')).toBeInTheDocument();
-    expect(within(lots).queryByText('₹1,600.00')).toBeNull();
+    // 1,000 units × NAV 112.80 = 1,12,800 → profit 12,800 → admin fee 1,000 → final 11,800.
+    expect(await screen.findByText('₹1,12,800.00')).toBeInTheDocument();
+    expect(screen.getByText('+₹12,800.00')).toBeInTheDocument();
+    expect(screen.getByText('+₹11,800.00')).toBeInTheDocument();
+    expect(screen.getByText('₹112.80000000')).toBeInTheDocument();
+    const statement = screen
+      .getByRole('heading', { name: 'Investment statement' })
+      .closest('header')!.parentElement!;
+    expect(statement.textContent).not.toMatch(/performance fee|gross|₹4,800\.00/i);
   });
 
   it('NAV history and performance-fee reports list published data', async () => {
@@ -228,12 +239,17 @@ describe('Reports', () => {
     await screen.findByRole('option', { name: /FY27 Growth Cycle/ });
     await user.selectOptions(screen.getByLabelText('Cycle'), CYCLE_ID);
     expect(await screen.findByText('₹116.0000')).toBeInTheDocument();
+    expect(screen.getByText('₹112.8000')).toBeInTheDocument();
+    expect(screen.getByText('+₹24,000.00')).toBeInTheDocument();
     unmount();
 
     const r = renderRoute('/admin/reports?tab=fees');
     await screen.findByRole('option', { name: /FY27 Growth Cycle/ });
     await r.user.selectOptions(screen.getByLabelText('Cycle'), CYCLE_ID);
-    expect(await screen.findByText(/Total indicative fee/)).toHaveTextContent('₹4,800.00');
+    const summary = await screen.findByText(/Cycle profit/);
+    expect(summary).toHaveTextContent('performance fee ₹4,800.00 (20.00%)');
+    expect(summary).toHaveTextContent('admin fees ₹2,000.00');
+    expect(summary).toHaveTextContent("clients' final profit +₹17,200.00");
   });
 
   it('audit log filters, explains entries and shows before/after details', async () => {

@@ -7,7 +7,8 @@ import { isUuid } from '@/lib/utils/uuid';
 
 /**
  * Client portal data. Every call goes through a SECURITY DEFINER function that returns only the
- * signed-in client's own rows and only client-safe columns (no admin notes or reasons).
+ * signed-in client's own rows and only client-safe columns (no admin notes or reasons, and never any
+ * performance-fee data: clients see the NAV after the performance fee, the admin fee and final profit).
  */
 
 export interface ClientCycle {
@@ -17,16 +18,17 @@ export interface ClientCycle {
   start_date: string;
   end_date: string;
   base_nav: string;
-  current_fee_rate: string | null;
   units: string;
   net_contributed: string;
   latest_nav_date: string | null;
-  latest_gross_nav: string | null;
-  lots_contributed: string | null;
-  gross_value: string | null;
-  fee_amount: string | null;
-  net_value: string | null;
-  loss_to_recover: string | null;
+  /** NAV per unit clients see (after performance fee); null until a NAV is published. */
+  latest_nav: string | null;
+  /** units × latest NAV (or base NAV before the first NAV). */
+  current_value: string;
+  profit: string;
+  admin_fee: string;
+  final_profit: string;
+  final_value: string;
 }
 
 export interface ClientContribution {
@@ -40,32 +42,14 @@ export interface ClientContribution {
   status: 'pending' | 'verified' | 'rejected' | 'reversed';
   applicable_nav: string | null;
   units_issued: string | null;
-  locked_fee_rate: string | null;
   verified_at: string | null;
   rejected_at: string | null;
   reversed_at: string | null;
 }
 
-export interface ClientLot {
-  contribution_id: string;
-  received_at: string;
-  amount: string;
-  units: string;
-  entry_nav: string;
-  reference_hwm: string;
-  fee_rate: string;
-  nav_date: string;
-  gross_nav_per_unit: string;
-  gross_value: string;
-  eligible_profit_per_unit: string;
-  fee_amount: string;
-  net_value: string;
-  loss_to_recover: string;
-}
-
 export interface ClientNavPoint {
   nav_date: string;
-  gross_nav_per_unit: string;
+  nav_per_unit: string;
 }
 
 export type ActivityKind =
@@ -97,7 +81,6 @@ export const portalKeys = {
   all: ['portal'] as const,
   cycles: () => ['portal', 'cycles'] as const,
   contributions: () => ['portal', 'contributions'] as const,
-  lots: (cycleId: string) => ['portal', 'lots', cycleId] as const,
   nav: (cycleId: string) => ['portal', 'nav', cycleId] as const,
   activity: () => ['portal', 'activity'] as const,
 };
@@ -110,14 +93,6 @@ export function useMyContributions() {
   return useQuery({
     queryKey: portalKeys.contributions(),
     queryFn: () => rpc<ClientContribution[]>('client_my_contributions'),
-  });
-}
-
-export function useMyLots(cycleId: string) {
-  return useQuery({
-    queryKey: portalKeys.lots(cycleId),
-    queryFn: () => rpc<ClientLot[]>('client_my_lot_values', { p_cycle_id: cycleId }),
-    enabled: isUuid(cycleId),
   });
 }
 
