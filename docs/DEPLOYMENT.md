@@ -79,5 +79,23 @@ rule (guards disabled inside one atomic transaction, re-enabled, cleanup recorde
 `maintenance.demo_data_removed`). The **5 demo client accounts were kept** (`@example.test`, still flagged to
 change their temporary password). No cycles, contributions, valuations or NAVs exist.
 
+**Current state (14 Nov 2026):** all data was erased again with the new admin reset
+(`maintenance.data_reset` in the audit log). 7 user accounts remain; no business data exists.
+
+### Erasing all data (admin)
+
+Settings → **Danger zone → Erase all data** (admin only; type `ERASE ALL DATA` plus a reason). It calls
+`admin_reset_demo_data`, which deletes every cycle, fee term, contribution, ledger row, valuation, NAV, fee
+record and every non-account audit entry in one transaction. **User accounts, roles, statuses and account
+history are never deleted.** One `maintenance.data_reset` audit entry records who did it, why and the counts.
+
+Before real money is involved, switch it off permanently (SQL editor, as owner):
+
+```sql
+update private.app_config set value = 'false'::jsonb, updated_at = now() where key = 'demo_reset_enabled';
+```
+
+The button then shows "Resetting data is disabled on this system." and nothing is deleted.
+
 Running `demo_seed.sql` again would **not** recreate data while the demo clients exist (it would fail on their
 duplicate emails). Prefer a separate Supabase project for a resettable demo.

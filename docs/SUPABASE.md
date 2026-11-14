@@ -43,25 +43,28 @@ npx supabase db query --remote -f supabase/tests/fees.test.sql
 # Expected: ERROR ... ALL_FEE_TESTS_PASSED (11 checks)
 npx supabase db query --remote -f supabase/tests/client_portal.test.sql
 # Expected: ERROR ... ALL_CLIENT_PORTAL_TESTS_PASSED (13 checks)
+npx supabase db query --remote -f supabase/tests/reset.test.sql
+# Expected: ERROR ... ALL_RESET_TESTS_PASSED (8 checks)
 npx supabase db advisors --remote --type security
 ```
 
 Run all suites (PowerShell):
 
 ```powershell
-foreach ($t in 'rls_profiles','rls_audit','cycles','contributions','valuations','nav','fees','client_portal') {
+foreach ($t in 'rls_profiles','rls_audit','cycles','contributions','valuations','nav','fees','client_portal','reset') {
   npx supabase db query --remote -f "supabase/tests/$t.test.sql"
 }
 ```
 
 ### Accepted advisor findings
 
-| Finding                                                       | Why it is accepted                                                                                                                                                               |
-| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0029 `admin_*` functions executable by signed-in users        | Intentional admin API. Every `admin_*` function calls `private.require_admin()` / `private.is_admin()` first and rejects everyone else (covered by every test suite).            |
-| 0029 `client_*` functions executable by signed-in users       | Intentional client API. Each calls `private.current_client_id()` (active client only) and returns only the caller's own rows and client-safe columns (`client_portal.test.sql`). |
-| 0029 `complete_password_change` executable by signed-in users | Only clears the caller's own `must_change_password` flag.                                                                                                                        |
-| Leaked password protection disabled                           | Dashboard setting; enable if the plan supports it.                                                                                                                               |
+| Finding                                                       | Why it is accepted                                                                                                                                                                          |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0029 `admin_*` functions executable by signed-in users        | Intentional admin API. Every `admin_*` function calls `private.require_admin()` / `private.is_admin()` first and rejects everyone else (covered by every test suite).                       |
+| 0029 `client_*` functions executable by signed-in users       | Intentional client API. Each calls `private.current_client_id()` (active client only) and returns only the caller's own rows and client-safe columns (`client_portal.test.sql`).            |
+| 0029 `admin_reset_demo_data` executable by signed-in users    | Demo-only reset. Requires an active admin, the typed phrase and a reason, and refuses to run when `private.app_config.demo_reset_enabled` is false (`reset.test.sql`). Never deletes users. |
+| 0029 `complete_password_change` executable by signed-in users | Only clears the caller's own `must_change_password` flag.                                                                                                                                   |
+| Leaked password protection disabled                           | Dashboard setting; enable if the plan supports it.                                                                                                                                          |
 
 ## Edge Functions
 

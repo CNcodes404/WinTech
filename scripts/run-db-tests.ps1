@@ -7,7 +7,7 @@
     npm run test:db
 #>
 $ErrorActionPreference = 'Continue'
-$suites = 'rls_profiles', 'rls_audit', 'cycles', 'contributions', 'valuations', 'nav', 'fees', 'client_portal'
+$suites = 'rls_profiles', 'rls_audit', 'cycles', 'contributions', 'valuations', 'nav', 'fees', 'client_portal', 'reset'
 $failed = 0
 $total = 0
 

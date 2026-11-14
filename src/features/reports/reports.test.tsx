@@ -288,4 +288,43 @@ describe('Settings', () => {
       }),
     );
   });
+
+  it('erases all data only after the exact phrase and a reason, keeping users', async () => {
+    const { user } = renderRoute('/admin/settings');
+    expect(await screen.findByText(/Every user account \(admins and clients\)/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Erase all data' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Erase all data?' });
+    const confirm = within(dialog).getByRole('button', { name: 'Erase all data' });
+    await user.type(within(dialog).getByLabelText(/Type ERASE ALL DATA/), 'erase all data');
+    expect(confirm).toBeDisabled();
+    await user.clear(within(dialog).getByLabelText(/Type ERASE ALL DATA/));
+    await user.type(within(dialog).getByLabelText(/Type ERASE ALL DATA/), 'ERASE ALL DATA');
+    expect(confirm).toBeEnabled();
+    await user.type(within(dialog).getByLabelText(/Reason/), 'Fresh start for the demo');
+    supabaseMock.rpc.mockResolvedValueOnce({ data: { cycles: 1, users_kept: 3 }, error: null });
+    await user.click(confirm);
+    await waitFor(() =>
+      expect(supabaseMock.rpc).toHaveBeenCalledWith('admin_reset_demo_data', {
+        p_confirmation: 'ERASE ALL DATA',
+        p_reason: 'Fresh start for the demo',
+      }),
+    );
+    expect(await screen.findByText('All data erased')).toBeInTheDocument();
+  });
+
+  it('shows the server message when erasing is switched off', async () => {
+    const { user } = renderRoute('/admin/settings');
+    await user.click(await screen.findByRole('button', { name: 'Erase all data' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Erase all data?' });
+    await user.type(within(dialog).getByLabelText(/Type ERASE ALL DATA/), 'ERASE ALL DATA');
+    await user.type(within(dialog).getByLabelText(/Reason/), 'Trying on a live system');
+    supabaseMock.rpc.mockResolvedValueOnce({
+      data: null,
+      error: { code: '23514', message: 'Resetting data is disabled on this system.' },
+    });
+    await user.click(within(dialog).getByRole('button', { name: 'Erase all data' }));
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      'Resetting data is disabled on this system.',
+    );
+  });
 });

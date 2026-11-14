@@ -25,6 +25,8 @@ been approved by qualified professionals (see README).
 
 ## Product / technical
 
+- **Erase all data** (Settings → Danger zone) is enabled for the demo. It is irreversible (no backup or undo
+  in the app) and must be switched off with `private.app_config.demo_reset_enabled = false` before real use.
 - Proof-of-payment uploads are not implemented (database column reserved).
 - New clients receive an admin-chosen temporary password (no invite email; default Supabase mailer only
   delivers to project team addresses). The forced password change is a UX guard, not server-enforced.

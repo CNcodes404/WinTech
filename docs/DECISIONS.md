@@ -14,6 +14,7 @@ Approved by the product owner on 12 Nov 2026 (Module 0 plan review). All account
 | G   | **Account provisioning.** Public sign-up is disabled. First admin is bootstrapped via SQL; clients are created by an admin through an Edge Function that holds the service-role key server-side.                                                                                                               | Modules 3–4  |
 | H   | **Module order.** Schema is introduced per feature module; Admin Overview moved after the NAV/fee modules so it uses real seeded data.                                                                                                                                                                         | Plan         |
 | I   | **Supabase environment.** Use the product owner's hosted Supabase project.                                                                                                                                                                                                                                     | Module 3     |
+| J   | **Admin data reset (14 Nov 2026, owner request).** Admins may erase all business data and non-account audit history from Settings → Danger zone; users are never deleted. The only exception to append-only records, guarded by a typed phrase, a reason, an audit entry and a server-side kill switch.        | Post-V1      |
 
 ## Module 13 engineering choices
 

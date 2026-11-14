@@ -14,7 +14,7 @@ dashboard settings for the project owner.
 
 | Check                                                | Result                                                                                 |
 | ---------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `npm run test:db` — 8 suites, rollback-only, live DB | **167 / 167 checks pass**                                                              |
+| `npm run test:db` — 9 suites, rollback-only, live DB | **175 / 175 checks pass**                                                              |
 | `supabase/scripts/security_posture.sql`              | Clean (see table below)                                                                |
 | Supabase security advisor                            | Only accepted findings (below)                                                         |
 | Live E2E as demo client (real Auth API)              | Own profile only; portal data correct; direct table read → 0 rows; admin RPC → **403** |
@@ -79,3 +79,12 @@ These are outside a demo prototype's scope (see README legal boundary):
 independent penetration test; legal/compliance review of the fund structure and fee model; custom SMTP
 and email invites; MFA for administrators; backups/PITR and incident response plan; separate staging and
 production projects; monitoring and alerting on audit events.
+
+## Addendum — admin data reset (14 Nov 2026)
+
+Migration `20261114010000_admin_data_reset.sql` adds `admin_reset_demo_data`, the only path that deletes
+financial or audit records. Controls: active admin only (`require_admin`), exact phrase `ERASE ALL DATA`,
+mandatory reason, server-side kill switch `private.app_config.demo_reset_enabled` (not reachable through the
+API), atomic execution (guards disabled and re-enabled in the same transaction; verified none left disabled),
+users and account history never touched, and a `maintenance.data_reset` audit entry with counts.
+**Risk accepted for the demo; set the switch to false before any real use** (see `docs/DEPLOYMENT.md`).

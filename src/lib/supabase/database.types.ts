@@ -1276,6 +1276,10 @@ export type Database = {
         Args: { p_contribution_id: string; p_reason: string };
         Returns: undefined;
       };
+      admin_reset_demo_data: {
+        Args: { p_confirmation: string; p_reason: string };
+        Returns: Json;
+      };
       admin_reverse_contribution: {
         Args: { p_contribution_id: string; p_reason: string };
         Returns: undefined;

@@ -52,6 +52,7 @@ const ACTIONS = [
   'nav.corrected',
   'nav.discarded',
   'maintenance.demo_data_removed',
+  'maintenance.data_reset',
 ];
 
 function Detail({ row }: { row: AuditRow }) {

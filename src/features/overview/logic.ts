@@ -13,6 +13,9 @@ export function describeActivity(e: ActivityEntry): string {
   if (e.action === 'maintenance.demo_data_removed') {
     return 'Fictional demo financial data removed by the project owner (user accounts kept)';
   }
+  if (e.action === 'maintenance.data_reset') {
+    return 'All data erased for a fresh start (user accounts kept)';
+  }
   switch (e.entity_type) {
     case 'profile':
       return describeProfileEntry(e);

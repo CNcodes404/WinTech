@@ -20,6 +20,22 @@ export async function setUserRole(userId: string, role: AppRole, reason: string)
   if (error) throw toUserFacing(error);
 }
 
+/** Phrase the admin must type to confirm erasing all data (checked again on the server). */
+export const RESET_PHRASE = 'ERASE ALL DATA';
+
+/**
+ * Erases all cycles, contributions, valuations, NAVs, fees and non-account audit history.
+ * User accounts and their history are kept. Returns the number of rows removed per area.
+ */
+export async function resetAllData(confirmation: string, reason: string): Promise<Record<string, number>> {
+  const { data, error } = await supabase.rpc('admin_reset_demo_data', {
+    p_confirmation: confirmation,
+    p_reason: reason,
+  });
+  if (error) throw toUserFacing(error);
+  return (data ?? {}) as Record<string, number>;
+}
+
 export async function setUserStatus(userId: string, status: ProfileStatus, reason: string): Promise<void> {
   const { error } = await supabase.rpc('admin_set_user_status', {
     p_user_id: userId,

@@ -190,6 +190,9 @@ describe('overview logic', () => {
     };
     expect(describeActivity(cleanup)).toMatch(/demo financial data removed/);
     expect(activityLink(cleanup)).toBeNull();
+    expect(describeActivity({ ...cleanup, action: 'maintenance.data_reset' })).toMatch(
+      /All data erased .*user accounts kept/,
+    );
   });
 });
 

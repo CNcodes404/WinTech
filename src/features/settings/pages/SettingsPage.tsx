@@ -1,16 +1,16 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ShieldCheck, ShieldOff, UserPlus } from 'lucide-react';
+import { ShieldCheck, ShieldOff, Trash2, UserPlus } from 'lucide-react';
 import { useState } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { FormField, Select } from '@/components/ui/Form';
+import { FormField, Input, Select } from '@/components/ui/Form';
 import { TableSkeleton } from '@/components/ui/Skeleton';
 import { ErrorState } from '@/components/ui/States';
 import { useToast } from '@/components/ui/toast-context';
-import { setUserRole } from '@/features/admin-accounts/api';
+import { RESET_PHRASE, resetAllData, setUserRole } from '@/features/admin-accounts/api';
 import { useAuth } from '@/features/auth/auth-context';
 import { NewPasswordForm } from '@/features/auth/components/NewPasswordForm';
 import { usePeople, type PersonOption } from '@/features/reports/api';
@@ -26,6 +26,81 @@ function useSetRole() {
         qc.invalidateQueries({ queryKey: ['audit'] }),
       ]),
   });
+}
+
+/** Erases all business data (never users). Server enforces admin, phrase, reason and an on/off switch. */
+function DangerZone() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [phrase, setPhrase] = useState('');
+  const matches = phrase.trim() === RESET_PHRASE;
+
+  return (
+    <Card className="border-loss/30 lg:col-span-3">
+      <CardHeader
+        title="Danger zone"
+        description="Start fresh, for example before a demo. This cannot be undone."
+        as="h2"
+        actions={
+          <Button size="sm" variant="danger" onClick={() => setOpen(true)}>
+            <Trash2 aria-hidden="true" className="size-4" />
+            Erase all data
+          </Button>
+        }
+      />
+      <CardContent>
+        <div className="grid gap-4 text-sm sm:grid-cols-2">
+          <div>
+            <p className="font-medium">Erased</p>
+            <p className="mt-1 text-muted">
+              All cycles, fee terms, contributions, unit ledger, portfolio valuations, NAVs, fee accruals and
+              their audit history.
+            </p>
+          </div>
+          <div>
+            <p className="font-medium">Kept</p>
+            <p className="mt-1 text-muted">
+              Every user account (admins and clients), their sign-in, role, status and contact details, and
+              the history of account changes. A single audit entry records who erased the data and why.
+            </p>
+          </div>
+        </div>
+      </CardContent>
+
+      <ConfirmDialog
+        open={open}
+        onOpenChange={(o) => {
+          setOpen(o);
+          if (!o) setPhrase('');
+        }}
+        title="Erase all data?"
+        description="Every cycle, contribution, valuation, NAV and fee record is permanently deleted for everyone. User accounts are not deleted."
+        confirmLabel="Erase all data"
+        tone="danger"
+        requireReason
+        confirmDisabled={!matches}
+        onConfirm={async (reason) => {
+          await resetAllData(phrase.trim(), reason);
+          setPhrase('');
+          await qc.invalidateQueries();
+          toast({ title: 'All data erased', description: 'User accounts were kept.' });
+        }}
+      >
+        <FormField label={`Type ${RESET_PHRASE} to confirm`} required>
+          {(field) => (
+            <Input
+              {...field}
+              value={phrase}
+              onChange={(e) => setPhrase(e.target.value)}
+              autoComplete="off"
+              spellCheck={false}
+            />
+          )}
+        </FormField>
+      </ConfirmDialog>
+    </Card>
+  );
 }
 
 export function SettingsPage() {
@@ -105,6 +180,8 @@ export function SettingsPage() {
             />
           </CardContent>
         </Card>
+
+        <DangerZone />
       </div>
 
       <ConfirmDialog
