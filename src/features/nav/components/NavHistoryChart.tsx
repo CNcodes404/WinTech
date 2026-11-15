@@ -1,7 +1,8 @@
 import {
+  Area,
   CartesianGrid,
+  ComposedChart,
   Line,
-  LineChart,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -60,7 +61,13 @@ export function NavHistoryChart({ points: published, baseNav, startDate }: NavHi
     <figure className="m-0">
       <div role="img" aria-label={summary} className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={points} margin={{ top: 12, right: 16, bottom: 4, left: 4 }}>
+          <ComposedChart data={points} margin={{ top: 12, right: 16, bottom: 4, left: 4 }}>
+            <defs>
+              <linearGradient id="navFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={LINE} stopOpacity={0.28} />
+                <stop offset="100%" stopColor={LINE} stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
             <CartesianGrid stroke={GRID} strokeDasharray="0" vertical={false} />
             <XAxis
               dataKey="t"
@@ -91,6 +98,15 @@ export function NavHistoryChart({ points: published, baseNav, startDate }: NavHi
               content={(props) => <NavTooltip active={props.active} payload={props.payload} />}
               cursor={{ stroke: AXIS_TEXT, strokeWidth: 1 }}
             />
+            <Area
+              type="linear"
+              dataKey="nav"
+              stroke="none"
+              fill="url(#navFill)"
+              isAnimationActive={false}
+              activeDot={false}
+              tooltipType="none"
+            />
             <Line
               type="linear"
               dataKey="nav"
@@ -100,7 +116,7 @@ export function NavHistoryChart({ points: published, baseNav, startDate }: NavHi
               activeDot={{ r: 5, strokeWidth: 2, stroke: '#FFFFFF', fill: LINE }}
               isAnimationActive={false}
             />
-          </LineChart>
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
       <figcaption className="sr-only">{summary}</figcaption>

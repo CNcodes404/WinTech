@@ -23,7 +23,8 @@ export function ClientLayout() {
         Skip to content
       </a>
 
-      <header className="sticky top-0 z-20 border-b border-line bg-surface/95 backdrop-blur print:hidden">
+      <header className="sticky top-0 z-20 bg-surface/90 backdrop-blur print:hidden">
+        <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 brand-rule" />
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">
           <Link to={`${BASE}/overview`} aria-label="WinTech home">
             <BrandMark />
@@ -38,7 +39,7 @@ export function ClientLayout() {
                       cn(
                         'flex items-center border-b-2 px-3 text-sm font-medium transition-colors',
                         isActive
-                          ? 'border-emerald-500 text-ink'
+                          ? 'border-emerald-500 text-emerald-700'
                           : 'border-transparent text-muted hover:text-ink',
                       )
                     }

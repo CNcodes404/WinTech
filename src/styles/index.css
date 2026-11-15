@@ -45,7 +45,11 @@
   /* Shape & depth */
   --radius-card: 0.75rem;
   --radius-control: 0.5rem;
-  --shadow-card: 0 1px 2px 0 rgb(20 36 58 / 0.04), 0 1px 3px 0 rgb(20 36 58 / 0.06);
+  --shadow-card: 0 1px 2px 0 rgb(20 36 58 / 0.04), 0 4px 12px -2px rgb(20 36 58 / 0.06);
+  --shadow-card-hover: 0 2px 4px 0 rgb(20 36 58 / 0.05), 0 12px 24px -6px rgb(20 36 58 / 0.12);
+
+  /* Brand gradient (emerald → sky → indigo), used for accents only, never behind body text. */
+  --gradient-brand: linear-gradient(90deg, #0f9d83 0%, #0ea5e9 55%, #6366f1 100%);
   --shadow-overlay: 0 10px 30px -10px rgb(20 36 58 / 0.25);
 }
 
@@ -56,6 +60,18 @@
 
   body {
     @apply bg-page font-sans text-ink antialiased;
+    /* Soft brand tints in the corners; content sits on white cards, so text contrast is unchanged. */
+    background-image:
+      radial-gradient(1100px 520px at 100% -8%, rgb(15 157 131 / 0.08), transparent 60%),
+      radial-gradient(900px 480px at -12% 0%, rgb(99 102 241 / 0.07), transparent 60%),
+      radial-gradient(800px 400px at 50% 110%, rgb(14 165 233 / 0.05), transparent 60%);
+    background-attachment: fixed;
+  }
+
+  @media print {
+    body {
+      background: #ffffff;
+    }
   }
 
   h1,
@@ -76,4 +92,9 @@
   font-feature-settings:
     'tnum' 1,
     'lnum' 1;
+}
+
+/* Thin brand-gradient rule (e.g. under the top bar). */
+@utility brand-rule {
+  background-image: var(--gradient-brand);
 }

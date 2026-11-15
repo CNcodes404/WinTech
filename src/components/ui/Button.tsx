@@ -5,7 +5,8 @@ import { cn } from '@/lib/utils/cn';
 
 const VARIANTS = {
   /** Main call-to-action. One per page/section. */
-  primary: 'bg-emerald-500 text-white hover:bg-emerald-600 active:bg-emerald-700 disabled:bg-emerald-500/50',
+  primary:
+    'bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-sm shadow-emerald-900/10 hover:from-emerald-700 hover:to-teal-800 active:to-teal-900 disabled:opacity-50',
   /** Strong neutral action (e.g. confirm in navy contexts). */
   navy: 'bg-navy-900 text-white hover:bg-navy-800 disabled:bg-navy-900/50',
   secondary:

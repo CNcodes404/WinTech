@@ -35,7 +35,7 @@ export function AdminLayout() {
       <SkipLink />
 
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-navy-900 lg:flex print:hidden">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-gradient-to-b from-navy-900 via-[#16294a] to-[#1c2556] lg:flex print:hidden">
         <div className="flex h-16 items-center px-5">
           <Link to={`${BASE}/overview`} aria-label="WinTech admin home">
             <BrandMark inverted />
@@ -44,8 +44,11 @@ export function AdminLayout() {
         <nav aria-label="Admin" className="flex-1 overflow-y-auto px-3 py-2">
           <SidebarNav items={ADMIN_NAV} basePath={BASE} />
         </nav>
-        <div className="border-t border-navy-700 px-5 py-4">
-          <p className="text-xs text-navy-300">Admin console · V1 prototype</p>
+        <div className="border-t border-white/10 px-5 py-4">
+          <p className="flex items-center gap-2 text-xs text-navy-200">
+            <span aria-hidden="true" className="size-2 rounded-full bg-emerald-400" />
+            Admin console · V1 prototype
+          </p>
         </div>
       </aside>
 
@@ -55,7 +58,7 @@ export function AdminLayout() {
           <RadixDialog.Overlay className="fixed inset-0 z-40 bg-navy-900/40 lg:hidden" />
           <RadixDialog.Content
             aria-describedby={undefined}
-            className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col bg-navy-900 shadow-[var(--shadow-overlay)] focus:outline-none lg:hidden"
+            className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col bg-gradient-to-b from-navy-900 via-[#16294a] to-[#1c2556] shadow-[var(--shadow-overlay)] focus:outline-none lg:hidden"
           >
             <div className="flex h-16 items-center justify-between px-5">
               <RadixDialog.Title asChild>
@@ -79,7 +82,8 @@ export function AdminLayout() {
       </RadixDialog.Root>
 
       <div className="flex min-h-dvh flex-col lg:pl-64 print:pl-0">
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-line bg-surface/95 px-4 backdrop-blur sm:px-6 print:hidden">
+        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 bg-surface/90 px-4 backdrop-blur sm:px-6 print:hidden">
+          <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 brand-rule" />
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}

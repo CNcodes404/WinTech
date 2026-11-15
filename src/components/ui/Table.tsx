@@ -28,7 +28,7 @@ export function THead({ className, ...props }: HTMLAttributes<HTMLTableSectionEl
   return (
     <thead
       className={cn(
-        'border-b border-line bg-surface-muted text-left text-xs font-semibold tracking-wide text-muted uppercase',
+        'border-b border-line bg-gradient-to-r from-navy-50 to-surface-muted text-left text-xs font-semibold tracking-wide text-navy-700 uppercase',
         className,
       )}
       {...props}
@@ -41,7 +41,7 @@ export function TBody({ className, ...props }: HTMLAttributes<HTMLTableSectionEl
 }
 
 export function TR({ className, ...props }: HTMLAttributes<HTMLTableRowElement>) {
-  return <tr className={cn('hover:bg-surface-muted/60', className)} {...props} />;
+  return <tr className={cn('transition-colors hover:bg-emerald-50/40', className)} {...props} />;
 }
 
 type Align = { align?: 'left' | 'right' | 'center'; numeric?: boolean };

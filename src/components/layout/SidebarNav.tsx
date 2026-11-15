@@ -39,8 +39,8 @@ export function SidebarNav({ items, basePath, onNavigate }: SidebarNavProps) {
                 cn(
                   'flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2 text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-white/10 text-white shadow-[inset_3px_0_0_0_var(--color-emerald-500)]'
-                    : 'text-navy-200 hover:bg-white/5 hover:text-white',
+                    ? 'bg-gradient-to-r from-emerald-500/25 via-sky-500/10 to-transparent text-white shadow-[inset_3px_0_0_0_var(--color-emerald-500)] [&>svg]:text-emerald-300'
+                    : 'text-navy-200 hover:bg-white/5 hover:text-white [&>svg]:text-navy-300 hover:[&>svg]:text-sky-300',
                 )
               }
             >

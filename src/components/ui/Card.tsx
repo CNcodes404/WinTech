@@ -26,13 +26,19 @@ export function CardHeader({ title, description, actions, className, as: Heading
   return (
     <div
       className={cn(
-        'flex flex-wrap items-start justify-between gap-3 border-b border-line px-5 py-4',
+        'flex flex-wrap items-start justify-between gap-3 border-b border-line bg-gradient-to-r from-emerald-50/50 via-surface to-surface px-5 py-4',
         className,
       )}
     >
       <div className="min-w-0">
-        <Heading className="text-base">{title}</Heading>
-        {description && <p className="mt-0.5 text-sm text-muted">{description}</p>}
+        <Heading className="flex items-center gap-2.5 text-lg font-bold">
+          <span
+            aria-hidden="true"
+            className="h-5 w-1 shrink-0 rounded-full bg-gradient-to-b from-emerald-500 to-sky-500"
+          />
+          {title}
+        </Heading>
+        {description && <p className="mt-1 pl-3.5 text-sm text-muted">{description}</p>}
       </div>
       {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
     </div>
