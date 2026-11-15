@@ -160,7 +160,7 @@ export function NavPage() {
                 <p className="px-3 py-8 text-center text-sm text-muted">No published NAV yet.</p>
               ) : (
                 <Suspense fallback={<TableSkeleton rows={4} columns={1} />}>
-                  <NavHistoryChart points={points} baseNav={cycle.base_nav} />
+                  <NavHistoryChart points={points} baseNav={cycle.base_nav} startDate={cycle.start_date} />
                 </Suspense>
               )}
             </div>

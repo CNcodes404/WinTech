@@ -165,6 +165,16 @@ describe('client portal pages', () => {
     expect(within(figures).getByText('₹1,00,000.00')).toBeInTheDocument();
     expect(within(figures).getByText('1,000.0000')).toBeInTheDocument();
     expect(within(figures).getByText('₹115.0000')).toBeInTheDocument();
+    // Base NAV card sits before "Units held".
+    const labels = within(figures)
+      .getAllByText(/^(Base NAV|Units held)$/)
+      .map((e) => e.textContent);
+    expect(labels).toEqual(['Base NAV', 'Units held']);
+    expect(within(figures).getByText('₹100.0000')).toBeInTheDocument();
+    // Chart line starts at the base NAV dot.
+    expect(
+      await screen.findByRole('img', { name: /^NAV per unit from ₹100.0000 \(base NAV\)/ }),
+    ).toBeInTheDocument();
     expect(within(figures).getByText('₹1,15,000.00')).toBeInTheDocument();
     expect(within(figures).getByText('+₹15,000.00')).toBeInTheDocument();
     expect(within(figures).getByText('₹1,000.00')).toBeInTheDocument();

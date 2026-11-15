@@ -12,6 +12,11 @@ export const GLOSSARY = {
     description:
       'The value of one unit of the cycle, published once a day after market close. Money received on a day is converted to units at the previous published NAV.',
   },
+  /** client-safe */
+  baseNav: {
+    label: 'Base NAV',
+    description: 'The NAV per unit the cycle started at. Changes in NAV are measured from it.',
+  },
   /** admin */
   grossNav: {
     label: 'Market NAV',

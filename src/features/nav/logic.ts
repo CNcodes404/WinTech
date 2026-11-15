@@ -42,6 +42,22 @@ export interface NavChartPoint {
    */
   nav: number;
   exact: string;
+  /** True for the starting point (the cycle's base NAV). */
+  isBase?: boolean;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Prepend the base NAV as the first point, at the start of the cycle's start date (IST), so the chart
+ * always draws a line from the starting NAV. If NAVs are dated before the start date (back-dated
+ * demos), the base point is placed one day before the first NAV instead.
+ */
+export function withBasePoint(points: NavChartPoint[], baseNav: string, startDate: string): NavChartPoint[] {
+  const start = new Date(`${startDate}T00:00:00+05:30`).getTime();
+  const first = points[0]?.t;
+  const t = first !== undefined && start >= first ? first - DAY_MS : start;
+  return [{ t, nav: toDecimal(baseNav).toNumber(), exact: baseNav, isBase: true }, ...points];
 }
 
 /** Published NAVs only (the NAV clients see), oldest first. */

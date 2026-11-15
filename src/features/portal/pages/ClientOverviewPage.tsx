@@ -95,6 +95,12 @@ export function ClientOverviewPage() {
             value={formatINR(cycle.net_contributed)}
             meta="Verified, after any reversals"
           />
+          <StatCard
+            label="Base NAV"
+            term="baseNav"
+            value={formatNav(cycle.base_nav)}
+            meta="Starting NAV of this cycle"
+          />
           <StatCard label="Units held" term="units" value={formatUnits(cycle.units, { decimals: 4 })} />
           <StatCard
             label="NAV per unit"
@@ -148,7 +154,7 @@ export function ClientOverviewPage() {
                 <p className="px-3 py-8 text-center text-sm text-muted">No NAV has been published yet.</p>
               ) : (
                 <Suspense fallback={<TableSkeleton rows={4} columns={1} />}>
-                  <NavHistoryChart points={points} baseNav={cycle.base_nav} />
+                  <NavHistoryChart points={points} baseNav={cycle.base_nav} startDate={cycle.start_date} />
                 </Suspense>
               )}
             </div>

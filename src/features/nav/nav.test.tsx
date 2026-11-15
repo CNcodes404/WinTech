@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { hasOp, makeProfile, mockQuery, mockSignedIn, supabaseMock } from '../../../tests/mocks/supabase';
 import { renderRoute } from '../../../tests/utils';
-import { chartPoints, describeNavEntry, navChange } from './logic';
+import { chartPoints, describeNavEntry, navChange, withBasePoint } from './logic';
 import type { NavSnapshot } from './types';
 
 const ADMIN = makeProfile({
@@ -150,7 +150,12 @@ describe('NavPage', () => {
     );
     expect(screen.getAllByText('Published').length).toBeGreaterThan(0);
     // The chart is lazy-loaded.
-    expect(await screen.findByRole('img', { name: /^NAV per unit from ₹105.0000/ })).toBeInTheDocument();
+    // The base NAV is the first dot, so the line runs from ₹100 to the published ₹105.
+    expect(
+      await screen.findByRole('img', {
+        name: /^NAV per unit from ₹100.0000 \(base NAV\) on 11 Nov 2026 to ₹105.0000/,
+      }),
+    ).toBeInTheDocument();
   });
 
   it('shows the NAV clients see (after performance fee) next to the market NAV', async () => {
@@ -253,5 +258,30 @@ describe('NavSnapshotPage', () => {
         p_corrects_snapshot_id: SNAP_ID,
       }),
     );
+  });
+});
+
+describe('withBasePoint', () => {
+  const pts = chartPoints([
+    {
+      id: 'a',
+      status: 'published',
+      nav_date: '2026-12-10T10:00:00Z',
+      gross_nav_per_unit: '105.00000000',
+      net_nav_per_unit: null,
+    } as NavSnapshot,
+  ]);
+
+  it('starts the line at the base NAV on the cycle start date (IST)', () => {
+    const out = withBasePoint(pts, '100.00000000', '2026-12-01');
+    expect(out).toHaveLength(2);
+    expect(out[0]).toMatchObject({ exact: '100.00000000', nav: 100, isBase: true });
+    expect(new Date(out[0]!.t).toISOString()).toBe('2026-11-30T18:30:00.000Z');
+  });
+
+  it('puts the base point one day before back-dated NAVs and works with no NAV yet', () => {
+    const out = withBasePoint(pts, '100.00000000', '2027-01-01');
+    expect(out[0]!.t).toBe(out[1]!.t - 24 * 60 * 60 * 1000);
+    expect(withBasePoint([], '100.00000000', '2026-12-01')).toHaveLength(1);
   });
 });

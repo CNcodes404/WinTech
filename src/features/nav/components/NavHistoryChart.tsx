@@ -9,7 +9,7 @@ import {
   YAxis,
 } from 'recharts';
 import { formatDate, formatDateTime, formatNav } from '@/lib/format';
-import type { NavChartPoint } from '../logic';
+import { withBasePoint, type NavChartPoint } from '../logic';
 
 // Single series: brand emerald for the line; recessive grid/axes in neutral tokens.
 const LINE = '#0F9D83';
@@ -27,7 +27,9 @@ function NavTooltip({ active, payload }: NavTooltipProps) {
   if (!p) return null;
   return (
     <div className="rounded-[var(--radius-control)] border border-line bg-surface px-3 py-2 text-xs shadow-[var(--shadow-overlay)]">
-      <p className="text-muted">{formatDateTime(new Date(p.t))}</p>
+      <p className="text-muted">
+        {p.isBase ? `Base NAV · ${formatDate(new Date(p.t))}` : formatDateTime(new Date(p.t))}
+      </p>
       <p className="mt-0.5 num text-sm font-semibold text-ink">{formatNav(p.exact, { decimals: 4 })}</p>
     </div>
   );
@@ -36,19 +38,22 @@ function NavTooltip({ active, payload }: NavTooltipProps) {
 interface NavHistoryChartProps {
   points: NavChartPoint[];
   baseNav: string;
+  /** Cycle start date (YYYY-MM-DD). When given, the base NAV is drawn as the first point. */
+  startDate?: string;
 }
 
 /**
  * Published NAV per unit (after performance fee) over time. One series → no legend (the card title names it);
  * a dashed neutral line marks the base NAV. The table below the chart is the accessible view.
  */
-export function NavHistoryChart({ points, baseNav }: NavHistoryChartProps) {
+export function NavHistoryChart({ points: published, baseNav, startDate }: NavHistoryChartProps) {
   const base = Number(baseNav); // display-only
+  const points = startDate ? withBasePoint(published, baseNav, startDate) : published;
   const first = points[0];
   const last = points.at(-1);
   const summary =
     first && last
-      ? `NAV per unit from ${formatNav(first.exact)} on ${formatDate(new Date(first.t))} to ${formatNav(last.exact)} on ${formatDate(new Date(last.t))}, ${points.length} published values.`
+      ? `NAV per unit from ${formatNav(first.exact)}${first.isBase ? ' (base NAV)' : ''} on ${formatDate(new Date(first.t))} to ${formatNav(last.exact)} on ${formatDate(new Date(last.t))}, ${published.length} published values.`
       : 'No published NAV yet.';
 
   return (
