@@ -28,6 +28,7 @@ import {
   WHY,
 } from '../content';
 import { EnquiryForm } from '../components/EnquiryForm';
+import { PerformanceSection } from '../components/PerformanceSection';
 import { Reveal, SectionHeading } from '../components/Reveal';
 
 /** Accent colours for icon tiles (decorative; text stays dark on white). */
@@ -604,6 +605,7 @@ export function LandingPage() {
       <About />
       <Sectors />
       <Approach />
+      <PerformanceSection />
       <Journey />
       <Fees />
       <Why />

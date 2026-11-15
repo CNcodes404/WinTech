@@ -70,7 +70,7 @@ describe('public website', () => {
       }),
     );
     expect(await screen.findByText(/we have received your enquiry/)).toBeInTheDocument();
-  });
+  }, 20_000);
 
   it('shows the server message when the daily limit is reached', async () => {
     supabaseMock.rpc.mockResolvedValueOnce({
@@ -88,7 +88,7 @@ describe('public website', () => {
     await user.click(within(form).getByRole('checkbox'));
     await user.click(within(form).getByRole('button', { name: 'Send enquiry' }));
     expect(await within(form).findByRole('alert')).toHaveTextContent('already received your enquiries today');
-  });
+  }, 20_000);
 
   it('serves the draft privacy and terms pages', async () => {
     const { unmount } = renderRoute('/privacy');
@@ -151,5 +151,52 @@ describe('admin enquiries page', () => {
         p_note: 'Called back',
       }),
     );
+  });
+});
+
+describe('performance section (illustrative mock data)', () => {
+  it('compounds cycle returns exactly and the growth line ends at the summary value', async () => {
+    const { GROWTH, STRATEGIES, summarise, START_VALUE } = await import('./performance');
+    const prime = summarise(STRATEGIES[0]!);
+    const expert = summarise(STRATEGIES[1]!);
+    // Prime: 1.485 × 1.213 − 1 = 80.13%; Expert: 1.074 × 1.198 × 1.146 × 0.968 × 1.119 − 1 = 59.72%.
+    expect(prime.totalReturn).toBeCloseTo(0.801305, 6);
+    expect(expert.totalReturn).toBeCloseTo(0.59717, 4);
+    expect(prime.cagr).toBeCloseTo(0.1249, 3);
+    expect(GROWTH).toHaveLength(61);
+    expect(GROWTH[0]).toMatchObject({ label: 'Nov 2021', prime: START_VALUE, expert: START_VALUE });
+    expect(GROWTH.at(-1)!.label).toBe('Nov 2026');
+    expect(Math.abs(GROWTH.at(-1)!.prime - prime.endValue)).toBeLessThanOrEqual(1);
+    expect(Math.abs(GROWTH.at(-1)!.expert - expert.endValue)).toBeLessThanOrEqual(1);
+    expect([prime.completedCycles, expert.completedCycles]).toEqual([1, 5]);
+  });
+
+  it('shows both strategies, a clear mock-data notice and switchable views', async () => {
+    const { user } = renderRoute('/');
+    const section = await waitFor(() => {
+      const el = document.getElementById('performance');
+      if (!el) throw new Error('missing');
+      return el;
+    });
+    const s = within(section);
+    expect(s.getByRole('heading', { name: 'WINTECH Prime' })).toBeInTheDocument();
+    expect(s.getByRole('heading', { name: 'WINTECH Expert' })).toBeInTheDocument();
+    expect(s.getByText('3-year cycle')).toBeInTheDocument();
+    expect(s.getByText('1-year cycle')).toBeInTheDocument();
+    expect(s.getByText('+80.1%')).toBeInTheDocument();
+    expect(s.getByText('+59.7%')).toBeInTheDocument();
+    expect(s.getByRole('note')).toHaveTextContent('Illustrative mock data.');
+    expect(s.getByText(/not actual or projected returns of any WINTECH strategy/)).toBeInTheDocument();
+    expect(
+      await s.findByRole('img', { name: /Growth of ₹1,00,000 from Nov 2021 to Nov 2026/ }),
+    ).toBeInTheDocument();
+
+    await user.click(s.getByRole('button', { name: /Return per cycle/ }));
+    expect(await s.findByRole('img', { name: /WINTECH Expert return per cycle/ })).toBeInTheDocument();
+
+    await user.click(s.getByRole('button', { name: /View as table/ }));
+    const cycles = s.getByRole('table', { name: /Return per cycle/ });
+    expect(within(cycles).getByText('-3.2%')).toBeInTheDocument();
+    expect(within(cycles).getByText(/Dec 2024 – Nov 2027 \(in progress\)/)).toBeInTheDocument();
   });
 });

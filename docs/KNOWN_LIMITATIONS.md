@@ -59,3 +59,7 @@ been approved by qualified professionals (see README).
 - **Add funds** shows a **demo QR code and UPI ID** (`src/features/funding/config.ts`,
   `public/payment-qr-demo.svg`). Replace them with the official details and set `isDemo: false` before real
   use. Payments are confirmed manually by an admin against the bank statement (no gateway).
+- The website's **Performance** section (WINTECH Prime, 3-year cycles; WINTECH Expert, 1-year cycles; last
+  5 years) uses **illustrative mock data** in `src/features/site/performance.ts`, clearly labelled as such.
+  Replace it with real, verified figures before launch; publishing past performance may be subject to
+  regulatory rules (e.g. SEBI) on presentation and disclaimers.

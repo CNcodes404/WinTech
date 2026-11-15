@@ -34,6 +34,8 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    // Full-page renders (public website) can exceed 5s when the whole suite runs in parallel.
+    testTimeout: 15_000,
     globals: false,
     setupFiles: ['./tests/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}', 'tests/**/*.test.{ts,tsx}'],

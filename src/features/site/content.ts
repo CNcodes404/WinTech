@@ -67,6 +67,7 @@ export const SECTIONS: SiteSection[] = [
   { id: 'about', label: 'About' },
   { id: 'sectors', label: 'Sectors' },
   { id: 'approach', label: 'Approach' },
+  { id: 'performance', label: 'Performance' },
   { id: 'how-it-works', label: 'How it works' },
   { id: 'fees', label: 'Fees' },
   { id: 'faq', label: 'FAQs' },
