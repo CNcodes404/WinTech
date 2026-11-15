@@ -16,6 +16,7 @@ import { CycleStatusBadge } from '@/features/cycles/components/CycleStatusBadge'
 import { useCycles } from '@/features/cycles/queries';
 import { usePositions } from '@/features/fees/api';
 import { useNavSnapshots } from '@/features/nav/queries';
+import { usePaymentRequests } from '@/features/funding/api';
 import { clientNav, FUND_LEVEL } from '@/features/nav/types';
 import { useValuations } from '@/features/portfolio/queries';
 import {
@@ -65,6 +66,7 @@ export function AdminOverviewPage() {
   const cycleId = cycle && isUuid(cycle.id) ? cycle.id : '';
 
   const units = useCycleUnitSummary(cycleId);
+  const paymentRequests = usePaymentRequests('submitted');
   const valuations = useValuations(cycleId);
   const snapshots = useNavSnapshots(cycleId);
   const latestValuation = valuations.data?.find((v) => v.status === 'approved');
@@ -150,8 +152,14 @@ export function AdminOverviewPage() {
   ];
 
   const pendingCount = units.data?.pending_count ?? 0;
+  const toReview = paymentRequests.data?.length ?? 0;
   const attention = cycle
     ? [
+        toReview > 0 && (
+          <AttentionItem key="payment-requests" to="/admin/payment-requests">
+            <span className="num font-medium">{toReview}</span> client payment request(s) to review
+          </AttentionItem>
+        ),
         pendingCount > 0 && (
           <AttentionItem key="pending" to={`/admin/contributions?status=pending&cycle=${cycle.id}`}>
             <span className="num font-medium">{pendingCount}</span> contribution(s) awaiting verification (

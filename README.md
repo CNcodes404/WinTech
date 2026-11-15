@@ -20,6 +20,9 @@ demo reset.
 **Public website** (`/`): company information (about, sectors, approach, fees, risk disclosure, FAQs) with
 an enquiry form; enquiries appear under Admin → Enquiries. Draft Privacy and Terms pages.
 
+**Add funds:** clients pay by UPI QR / bank transfer and submit the payment details (UPI ID, UTR); admins
+review them under Payment Requests and approve them into contributions.
+
 **Client (read-only, own data only):** NAV per unit (after performance fee), current value, profit, admin
 fee and final profit; contributions valued at the latest NAV; activity; printable/CSV statements; profile and
 password. Clients never see the performance fee.

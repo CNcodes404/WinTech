@@ -834,6 +834,116 @@ export type Database = {
           },
         ];
       };
+      payment_requests: {
+        Row: {
+          amount: number;
+          client_id: string;
+          contribution_id: string | null;
+          created_at: string;
+          cycle_id: string;
+          id: string;
+          method: Database['public']['Enums']['payment_request_method'];
+          note: string | null;
+          paid_at: string;
+          payer_name: string | null;
+          payer_upi_id: string | null;
+          review_reason: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          status: Database['public']['Enums']['payment_request_status'];
+          transaction_ref: string;
+          updated_at: string;
+        };
+        Insert: {
+          amount: number;
+          client_id: string;
+          contribution_id?: string | null;
+          created_at?: string;
+          cycle_id: string;
+          id?: string;
+          method: Database['public']['Enums']['payment_request_method'];
+          note?: string | null;
+          paid_at: string;
+          payer_name?: string | null;
+          payer_upi_id?: string | null;
+          review_reason?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          status?: Database['public']['Enums']['payment_request_status'];
+          transaction_ref: string;
+          updated_at?: string;
+        };
+        Update: {
+          amount?: number;
+          client_id?: string;
+          contribution_id?: string | null;
+          created_at?: string;
+          cycle_id?: string;
+          id?: string;
+          method?: Database['public']['Enums']['payment_request_method'];
+          note?: string | null;
+          paid_at?: string;
+          payer_name?: string | null;
+          payer_upi_id?: string | null;
+          review_reason?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          status?: Database['public']['Enums']['payment_request_status'];
+          transaction_ref?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'payment_requests_client_id_fkey';
+            columns: ['client_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'payment_requests_contribution_id_fkey';
+            columns: ['contribution_id'];
+            isOneToOne: false;
+            referencedRelation: 'contribution_register';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'payment_requests_contribution_id_fkey';
+            columns: ['contribution_id'];
+            isOneToOne: false;
+            referencedRelation: 'contributions';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'payment_requests_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_overview';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'payment_requests_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_unit_summary';
+            referencedColumns: ['cycle_id'];
+          },
+          {
+            foreignKeyName: 'payment_requests_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'investment_cycles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'payment_requests_reviewed_by_fkey';
+            columns: ['reviewed_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       portfolio_valuation_items: {
         Row: {
           average_cost: number | null;
@@ -1355,6 +1465,74 @@ export type Database = {
           },
         ];
       };
+      payment_request_register: {
+        Row: {
+          amount: number | null;
+          client_email: string | null;
+          client_id: string | null;
+          client_name: string | null;
+          contribution_id: string | null;
+          created_at: string | null;
+          cycle_id: string | null;
+          cycle_name: string | null;
+          cycle_status: Database['public']['Enums']['cycle_status'] | null;
+          id: string | null;
+          method: Database['public']['Enums']['payment_request_method'] | null;
+          note: string | null;
+          paid_at: string | null;
+          payer_name: string | null;
+          payer_upi_id: string | null;
+          review_reason: string | null;
+          reviewed_at: string | null;
+          reviewer_name: string | null;
+          status: Database['public']['Enums']['payment_request_status'] | null;
+          transaction_ref: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'payment_requests_client_id_fkey';
+            columns: ['client_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'payment_requests_contribution_id_fkey';
+            columns: ['contribution_id'];
+            isOneToOne: false;
+            referencedRelation: 'contribution_register';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'payment_requests_contribution_id_fkey';
+            columns: ['contribution_id'];
+            isOneToOne: false;
+            referencedRelation: 'contributions';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'payment_requests_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_overview';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'payment_requests_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'cycle_unit_summary';
+            referencedColumns: ['cycle_id'];
+          },
+          {
+            foreignKeyName: 'payment_requests_cycle_id_fkey';
+            columns: ['cycle_id'];
+            isOneToOne: false;
+            referencedRelation: 'investment_cycles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Functions: {
       admin_add_fee_terms: {
@@ -1364,6 +1542,10 @@ export type Database = {
           p_fee_rate: number;
           p_reason: string;
         };
+        Returns: string;
+      };
+      admin_approve_payment_request: {
+        Args: { p_reason: string; p_request_id: string };
         Returns: string;
       };
       admin_approve_valuation: {
@@ -1430,6 +1612,10 @@ export type Database = {
       };
       admin_reject_contribution: {
         Args: { p_contribution_id: string; p_reason: string };
+        Returns: undefined;
+      };
+      admin_reject_payment_request: {
+        Args: { p_reason: string; p_request_id: string };
         Returns: undefined;
       };
       admin_reset_demo_data: {
@@ -1566,12 +1752,53 @@ export type Database = {
           units: string;
         }[];
       };
+      client_my_payment_requests: {
+        Args: never;
+        Returns: {
+          amount: string;
+          created_at: string;
+          cycle_id: string;
+          cycle_name: string;
+          id: string;
+          method: string;
+          paid_at: string;
+          payer_upi_id: string;
+          review_reason: string;
+          reviewed_at: string;
+          status: string;
+          transaction_ref: string;
+        }[];
+      };
       client_nav_history: {
         Args: { p_cycle_id: string };
         Returns: {
           nav_date: string;
           nav_per_unit: string;
         }[];
+      };
+      client_open_cycles: {
+        Args: never;
+        Returns: {
+          base_nav: string;
+          cycle_id: string;
+          cycle_name: string;
+          cycle_status: string;
+          end_date: string;
+          start_date: string;
+        }[];
+      };
+      client_submit_payment_request: {
+        Args: {
+          p_amount: number;
+          p_cycle_id: string;
+          p_method: Database['public']['Enums']['payment_request_method'];
+          p_note: string;
+          p_paid_at: string;
+          p_payer_name: string;
+          p_payer_upi_id: string;
+          p_transaction_ref: string;
+        };
+        Returns: string;
       };
       complete_password_change: { Args: never; Returns: undefined };
       submit_enquiry: {
@@ -1596,6 +1823,8 @@ export type Database = {
       cycle_status: 'draft' | 'open' | 'active' | 'closed' | 'settled';
       enquiry_status: 'new' | 'contacted' | 'closed';
       nav_snapshot_status: 'draft' | 'published' | 'corrected' | 'discarded';
+      payment_request_method: 'upi' | 'bank_transfer';
+      payment_request_status: 'submitted' | 'approved' | 'rejected';
       profile_status: 'active' | 'inactive';
       valuation_status: 'draft' | 'approved' | 'superseded' | 'discarded';
     };
@@ -1725,6 +1954,8 @@ export const Constants = {
       cycle_status: ['draft', 'open', 'active', 'closed', 'settled'],
       enquiry_status: ['new', 'contacted', 'closed'],
       nav_snapshot_status: ['draft', 'published', 'corrected', 'discarded'],
+      payment_request_method: ['upi', 'bank_transfer'],
+      payment_request_status: ['submitted', 'approved', 'rejected'],
       profile_status: ['active', 'inactive'],
       valuation_status: ['draft', 'approved', 'superseded', 'discarded'],
     },

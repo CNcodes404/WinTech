@@ -14,7 +14,7 @@ dashboard settings for the project owner.
 
 | Check                                                | Result                                                                                 |
 | ---------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `npm run test:db` — 9 suites, rollback-only, live DB | **192 / 192 checks pass**                                                              |
+| `npm run test:db` — 9 suites, rollback-only, live DB | **202 / 202 checks pass**                                                              |
 | `supabase/scripts/security_posture.sql`              | Clean (see table below)                                                                |
 | Supabase security advisor                            | Only accepted findings (below)                                                         |
 | Live E2E as demo client (real Auth API)              | Own profile only; portal data correct; direct table read → 0 rows; admin RPC → **403** |
@@ -112,3 +112,14 @@ server-side validation, required consent, a honeypot field, and rate limits (3 p
 site-wide per hour). Visitors and clients cannot read `enquiries` (no grant / admin-only RLS); admins change
 status through the audited `admin_set_enquiry_status`. Enquiries have a delete guard and are cleared only by
 the admin erase-all reset. `enquiries.test.sql` covers all of this. The site keeps `noindex` until launch.
+
+## Addendum — client payment requests (15 Nov 2026)
+
+Clients pay outside the app (UPI QR / bank transfer) and submit payment details through
+`client_submit_payment_request` (active client only; validated amount, date not in the future or older than
+90 days, UPI ID format, UTR format; one live request per UTR; at most 10 open requests per client). Clients
+read only their own requests via `client_my_payment_requests`; the table and `payment_request_register` view
+are admin-only. Approval (`admin_approve_payment_request`) records a **pending** contribution through
+`admin_record_contribution` (all its checks apply); units are issued only by the normal verify step. Every
+submit/approve/reject is audited. Requests have a delete guard and are cleared only by the erase-all reset.
+Covered by `payment_requests.test.sql`.

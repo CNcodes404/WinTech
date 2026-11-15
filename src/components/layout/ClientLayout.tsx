@@ -85,7 +85,7 @@ export function ClientLayout() {
         aria-label="Client (mobile)"
         className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden print:hidden"
       >
-        <ul className="grid grid-cols-5">
+        <ul className="grid grid-cols-6">
           {CLIENT_NAV.map((item) => {
             const Icon = item.icon;
             return (

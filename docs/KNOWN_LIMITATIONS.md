@@ -56,3 +56,6 @@ been approved by qualified professionals (see README).
 - **Verification date:** admins may back-date a verification (units join the pool at that time), but never
   before the money was received, never in the future and never on or before the cycle's latest published NAV,
   so published NAVs cannot change. The real time of the click is kept in the audit log.
+- **Add funds** shows a **demo QR code and UPI ID** (`src/features/funding/config.ts`,
+  `public/payment-qr-demo.svg`). Replace them with the official details and set `isDemo: false` before real
+  use. Payments are confirmed manually by an admin against the bank statement (no gateway).

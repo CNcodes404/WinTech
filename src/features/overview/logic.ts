@@ -27,6 +27,14 @@ export function describeActivity(e: ActivityEntry): string {
       return describeValuationEntry(e);
     case 'nav_snapshot':
       return describeNavEntry(e);
+    case 'payment_request': {
+      const labels: Record<string, string> = {
+        'payment_request.submitted': 'Client submitted payment details',
+        'payment_request.approved': 'Payment request approved and contribution added',
+        'payment_request.rejected': 'Payment request rejected',
+      };
+      return labels[e.action] ?? e.action;
+    }
     case 'enquiry': {
       const after = (e.after_data ?? {}) as Record<string, unknown>;
       return `Website enquiry marked ${String(after.status ?? 'updated')}`;
@@ -52,6 +60,8 @@ export function activityLink(e: ActivityEntry): string | null {
       return `/admin/nav/snapshots/${e.entity_id}`;
     case 'enquiry':
       return '/admin/enquiries';
+    case 'payment_request':
+      return '/admin/payment-requests';
     default:
       return null;
   }

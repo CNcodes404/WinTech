@@ -105,6 +105,7 @@ begin
        + (select count(*) from public.nav_snapshots) + (select count(*) from public.lot_fee_accruals)
        + (select count(*) from public.fee_crystallisations)
        + (select count(*) from public.enquiries)
+       + (select count(*) from public.payment_requests)
     into v_n;
   if v_n <> 0 then raise exception 'TEST FAILED: % business rows remain after reset', v_n; end if;
   v_checks := v_checks + 1;

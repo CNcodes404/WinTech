@@ -1,5 +1,6 @@
 import {
   Activity,
+  BadgeIndianRupee,
   Briefcase,
   CalendarRange,
   ChartLine,
@@ -61,6 +62,13 @@ export const ADMIN_NAV: readonly NavItem[] = [
     module: 7,
   },
   {
+    path: 'payment-requests',
+    title: 'Payment Requests',
+    icon: BadgeIndianRupee,
+    description: 'Payment details submitted by clients, to check and approve.',
+    module: 17,
+  },
+  {
     path: 'portfolio',
     title: 'Portfolio',
     icon: Briefcase,
@@ -120,6 +128,13 @@ export const CLIENT_NAV: readonly NavItem[] = [
     icon: House,
     description: 'Your investment at a glance.',
     module: 12,
+  },
+  {
+    path: 'add-funds',
+    title: 'Add funds',
+    icon: BadgeIndianRupee,
+    description: 'Pay by UPI or bank transfer and send the payment details.',
+    module: 17,
   },
   {
     path: 'investment',

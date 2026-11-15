@@ -26,6 +26,7 @@ const ENTITY_TYPES: [string, string][] = [
   ['valuation', 'Valuations'],
   ['nav_snapshot', 'NAV'],
   ['enquiry', 'Enquiries'],
+  ['payment_request', 'Payment requests'],
 ];
 
 const ACTIONS = [
@@ -56,6 +57,9 @@ const ACTIONS = [
   'maintenance.data_reset',
   'cycle.admin_fee_changed',
   'enquiry.status_changed',
+  'payment_request.submitted',
+  'payment_request.approved',
+  'payment_request.rejected',
 ];
 
 function Detail({ row }: { row: AuditRow }) {

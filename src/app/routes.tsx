@@ -37,6 +37,8 @@ import { ValuationDetailPage } from '@/features/portfolio/pages/ValuationDetailP
 import { ValuationEditorPage } from '@/features/portfolio/pages/ValuationEditorPage';
 import { CyclesPage } from '@/features/cycles/pages/CyclesPage';
 import { EnquiriesPage } from '@/features/enquiries/EnquiriesPage';
+import { AddFundsPage } from '@/features/funding/AddFundsPage';
+import { PaymentRequestsPage } from '@/features/funding/PaymentRequestsPage';
 import { SiteLayout } from '@/features/site/components/SiteChrome';
 import { LandingPage } from '@/features/site/pages/LandingPage';
 import { PrivacyPage, TermsPage } from '@/features/site/pages/LegalPages';
@@ -53,11 +55,13 @@ const ADMIN_PAGES: Partial<Record<string, ReactElement>> = {
   reports: <ReportsPage />,
   settings: <SettingsPage />,
   enquiries: <EnquiriesPage />,
+  'payment-requests': <PaymentRequestsPage />,
 };
 
 /** Client portal sections. */
 const CLIENT_PAGES: Partial<Record<string, ReactElement>> = {
   overview: <ClientOverviewPage />,
+  'add-funds': <AddFundsPage />,
   investment: <MyInvestmentPage />,
   activity: <ClientActivityPage />,
   statements: <StatementsPage />,

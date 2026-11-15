@@ -47,13 +47,15 @@ npx supabase db query --remote -f supabase/tests/reset.test.sql
 # Expected: ERROR ... ALL_RESET_TESTS_PASSED (9 checks)
 npx supabase db query --remote -f supabase/tests/enquiries.test.sql
 # Expected: ERROR ... ALL_ENQUIRY_TESTS_PASSED (9 checks)
+npx supabase db query --remote -f supabase/tests/payment_requests.test.sql
+# Expected: ERROR ... ALL_PAYMENT_REQUEST_TESTS_PASSED (10 checks)
 npx supabase db advisors --remote --type security
 ```
 
 Run all suites (PowerShell):
 
 ```powershell
-foreach ($t in 'rls_profiles','rls_audit','cycles','contributions','valuations','nav','fees','client_portal','reset','enquiries') {
+foreach ($t in 'rls_profiles','rls_audit','cycles','contributions','valuations','nav','fees','client_portal','reset','enquiries','payment_requests') {
   npx supabase db query --remote -f "supabase/tests/$t.test.sql"
 }
 ```
