@@ -22,9 +22,11 @@ been approved by qualified professionals (see README).
   invested, and falls back to zero on a loss.
 - The **performance fee is not shown to clients** (they see the NAV after it). It must still be disclosed
   in the client agreement.
-- The **admin fee** is a flat ₹ amount per client per cycle, deducted from the client's figures even with
-  no profit. The current amount is used for live figures (editing it changes every client's figures at once);
-  the amount at cycle close is frozen in the final-fees record.
+- The **admin fee** is a ₹ amount **per client per completed month** (default ₹100), counted from the
+  client's first investment in the cycle up to the NAV date, in India time (joined 1 Jan, NAV 15 Mar →
+  2 months). It is deducted even with no profit. Partial months are not charged until they complete. The
+  current monthly amount is used for live figures (editing it re-prices all months, past ones included);
+  the total at cycle close is frozen in the final-fees record.
 - Units are issued at the latest NAV dated **before the day the money was received** (India time). If a
   day's NAV is published late, money verified in the meantime uses the last earlier NAV (the owner expects
   NAVs to arrive automatically each evening, so no block was added).

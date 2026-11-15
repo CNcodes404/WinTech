@@ -1044,6 +1044,8 @@ export type Database = {
       client_position_report: {
         Row: {
           admin_fee: number | null;
+          admin_fee_monthly: number | null;
+          admin_fee_months: number | null;
           client_email: string | null;
           client_id: string | null;
           client_name: string | null;
@@ -1051,6 +1053,7 @@ export type Database = {
           cycle_id: string | null;
           final_profit: number | null;
           final_value: number | null;
+          first_invested_at: string | null;
           gross_nav_per_unit: number | null;
           gross_value: number | null;
           nav_date: string | null;
@@ -1447,7 +1450,11 @@ export type Database = {
         Returns: undefined;
       };
       admin_verify_contribution: {
-        Args: { p_contribution_id: string; p_reason: string };
+        Args: {
+          p_contribution_id: string;
+          p_reason: string;
+          p_verified_at?: string;
+        };
         Returns: {
           applicable_nav: string;
           fee_rate: string;
@@ -1487,6 +1494,8 @@ export type Database = {
         Args: never;
         Returns: {
           admin_fee: string;
+          admin_fee_monthly: string;
+          admin_fee_months: number;
           base_nav: string;
           current_value: string;
           cycle_id: string;
@@ -1495,6 +1504,7 @@ export type Database = {
           end_date: string;
           final_profit: string;
           final_value: string;
+          first_invested_at: string;
           latest_nav: string;
           latest_nav_date: string;
           net_contributed: string;

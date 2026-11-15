@@ -21,12 +21,15 @@ const position = (o: Partial<ClientPosition>): ClientPosition => ({
   client_email: 'r@example.test',
   units: '1000.00000000',
   contributed: '100000.00',
+  first_invested_at: '2026-09-01T10:00:00Z',
   gross_nav_per_unit: '116.00000000',
   net_nav_per_unit: '113.76393849',
   gross_value: '116000.00',
   net_value: '113763.94',
   performance_fee_share: '2236.06',
   profit: '13763.94',
+  admin_fee_monthly: '500.00',
+  admin_fee_months: 2,
   admin_fee: '1000.00',
   final_profit: '12763.94',
   final_value: '112763.94',
@@ -218,7 +221,7 @@ describe('AdminOverviewPage', () => {
     expect(await within(figures).findByText('+₹16,000.00')).toBeInTheDocument();
     expect(within(figures).getByText('+₹10,800.00')).toBeInTheDocument();
     expect(within(figures).getByText(/admin fees ₹2,000.00/)).toBeInTheDocument();
-    expect(within(figures).getByText('20.00% · ₹1,000.00')).toBeInTheDocument();
+    expect(within(figures).getByText('20.00% · ₹1,000.00/mo')).toBeInTheDocument();
 
     expect(screen.getByRole('link', { name: /2 contribution\(s\) awaiting verification/ })).toHaveAttribute(
       'href',

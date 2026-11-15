@@ -34,7 +34,7 @@ export function CreateCycleDialog({ onClose }: { onClose: () => void }) {
       endDate: '',
       baseNav: '100',
       feePercent: '20',
-      adminFee: '1000',
+      adminFee: '100',
     },
   });
   const [feePercent, adminFee] = useWatch({ control, name: ['feePercent', 'adminFee'] });
@@ -128,9 +128,9 @@ export function CreateCycleDialog({ onClose }: { onClose: () => void }) {
           </FormField>
         </div>
         <FormField
-          label="Admin fee (₹ per client)"
+          label="Admin fee (₹ per client per month)"
           required
-          hint="Charged once per client for this cycle, even without profit. Shown to clients. Editable later."
+          hint="Charged for each completed month since a client first invests, even without profit. Shown to clients. Editable later."
           error={errors.adminFee?.message}
         >
           {(field) => <Input {...field} {...register('adminFee')} inputMode="decimal" className="num" />}

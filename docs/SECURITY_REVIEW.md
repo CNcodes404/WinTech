@@ -99,3 +99,7 @@ per-lot `client_my_lot_values` was removed. `client_portal.test.sql` checks the 
 assert the words never appear in the portal. The new admin view `client_position_report` is
 `security_invoker` (admin-only through base-table RLS); `admin_set_admin_fee` is admin-only, validated and
 audited (`cycle.admin_fee_changed`). The security posture check is unchanged (clean).
+
+Monthly admin fee (15 Nov 2026, `20261115030000_monthly_admin_fee.sql`): `private.completed_months` is
+executable by signed-in users because the `security_invoker` view `client_position_report` calls it. It is a
+pure date calculation that reads no data (accepted; the posture check now lists it next to `is_admin`).

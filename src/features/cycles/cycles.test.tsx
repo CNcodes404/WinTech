@@ -150,9 +150,9 @@ describe('CyclesPage', () => {
 
     await user.type(within(dialog).getByLabelText(/Cycle name/), 'FY27 Growth Cycle');
     await user.type(within(dialog).getByLabelText(/End date/), '2026-01-01');
-    // Defaults: 20% performance fee and ₹1,000 admin fee.
+    // Defaults: 20% performance fee and ₹100 admin fee per month.
     expect(within(dialog).getByLabelText(/Performance fee/)).toHaveValue('20');
-    expect(within(dialog).getByLabelText(/Admin fee/)).toHaveValue('1000');
+    expect(within(dialog).getByLabelText(/Admin fee/)).toHaveValue('100');
     await user.clear(within(dialog).getByLabelText(/Performance fee/));
     await user.type(within(dialog).getByLabelText(/Performance fee/), '100');
     await user.click(within(dialog).getByRole('button', { name: 'Create cycle' }));
@@ -169,11 +169,11 @@ describe('CyclesPage', () => {
     await user.type(within(dialog).getByLabelText(/Performance fee/), '17.5');
     await user.clear(within(dialog).getByLabelText(/Admin fee/));
     await user.type(within(dialog).getByLabelText(/Admin fee/), '1500.50');
-    // 100 → 130: fee 17.5% of ₹30,000 = ₹5,250 → profit ₹24,750 → final ₹23,249.50 after the admin fee.
+    // 100 → 130: fee 17.5% of ₹30,000 = ₹5,250 → profit ₹24,750 → final ₹21,749.00 after 2 months × ₹1,500.50.
     const example = within(dialog).getByText(/Example at/);
     expect(example).toHaveTextContent('₹5,250.00');
     expect(example).toHaveTextContent('₹24,750.00');
-    expect(example).toHaveTextContent('₹23,249.50');
+    expect(example).toHaveTextContent('₹21,749.00');
     await user.click(within(dialog).getByRole('button', { name: 'Create cycle' }));
 
     await waitFor(() =>

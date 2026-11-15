@@ -4,7 +4,7 @@ import { hasOp, makeProfile, mockQuery, mockSignedIn, supabaseMock } from '../..
 import { renderRoute } from '../../../tests/utils';
 import { calculateFundLevelNav } from '@/lib/finance';
 import type { ClientPosition, LotAccrual } from './api';
-import { clientFigures, summariseAccruals, summarisePositions } from './logic';
+import { clientFigures, completedMonths, summariseAccruals, summarisePositions } from './logic';
 
 const ADMIN = makeProfile({
   id: '00000000-0000-4000-8000-0000000000a1',
@@ -66,12 +66,15 @@ const POSITION: ClientPosition = {
   client_email: 'rahul@example.test',
   units: '1000.00000000',
   contributed: '100000.00',
+  first_invested_at: '2026-09-01T10:00:00Z',
   gross_nav_per_unit: '130.00000000',
   net_nav_per_unit: '115.00000000',
   gross_value: '130000.00',
   net_value: '115000.00',
   performance_fee_share: '15000.00',
   profit: '15000.00',
+  admin_fee_monthly: '500.00',
+  admin_fee_months: 2,
   admin_fee: '1000.00',
   final_profit: '14000.00',
   final_value: '114000.00',
@@ -153,6 +156,18 @@ describe('fee maths (mirrors the database)', () => {
     ).toBe('0.00');
   });
 
+  it('counts completed months for the monthly admin fee (India time)', () => {
+    expect(completedMonths('2027-01-01T10:00:00+05:30', '2027-03-15T15:30:00+05:30')).toBe(2);
+    expect(completedMonths('2027-01-20T10:00:00+05:30', '2027-03-15T15:30:00+05:30')).toBe(1);
+    expect(completedMonths('2027-01-31T10:00:00+05:30', '2027-02-28T15:30:00+05:30')).toBe(0);
+    expect(completedMonths('2027-01-15T10:00:00+05:30', '2027-02-15T10:00:00+05:30')).toBe(1);
+    expect(completedMonths('2027-01-15T10:00:00+05:30', '2027-02-15T09:59:00+05:30')).toBe(0);
+    // 31 Dec 23:30 IST is still December in India even though it is 18:00 UTC.
+    expect(completedMonths('2026-12-31T18:00:00Z', '2027-01-31T19:00:00Z')).toBe(1);
+    expect(completedMonths('2027-03-15T10:00:00Z', '2027-01-01T10:00:00Z')).toBe(0);
+    expect(completedMonths(null, '2027-01-01T10:00:00Z')).toBe(0);
+  });
+
   it('summarises positions and legacy lots exactly', () => {
     const s = summarisePositions([POSITION, { ...POSITION, client_id: 'c2', admin_fee: '1000.00' }]);
     expect(s.performanceFee.toFixed(2)).toBe('30000.00');
@@ -177,7 +192,8 @@ describe('ProfitSharingPage', () => {
     expect(within(row).getByText('+₹15,000.00')).toBeInTheDocument();
     expect(within(row).getByText('₹1,000.00')).toBeInTheDocument();
     expect(within(row).getByText('+₹14,000.00')).toBeInTheDocument();
-    expect(screen.getByText(/1 client\(s\) × ₹1,000.00/)).toBeInTheDocument();
+    expect(within(row).getByText('2 mo × ₹500.00')).toBeInTheDocument();
+    expect(screen.getByText(/1 client\(s\) · ₹1,000.00 per month/)).toBeInTheDocument();
   });
 
   it('locks the performance fee once active but lets admins change the admin fee', async () => {
@@ -241,7 +257,7 @@ describe('ProfitSharingPage', () => {
     renderRoute('/admin/profit-sharing');
     expect(await screen.findByText('Closing fees recorded')).toBeInTheDocument();
     expect(screen.getByText('₹3,000.00')).toBeInTheDocument();
-    expect(screen.getByText(/3 client\(s\) ×/)).toBeInTheDocument();
+    expect(screen.getByText(/3 client\(s\) · ₹1,000.00 per month/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Record final fees' })).toBeNull();
   });
 });

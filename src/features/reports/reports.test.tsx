@@ -100,12 +100,15 @@ const position = (client: string, name: string, units: string, contributed: stri
   client_email: `${name.split(' ')[0]!.toLowerCase()}@example.test`,
   units,
   contributed,
+  first_invested_at: '2026-09-01T10:00:00Z',
   gross_nav_per_unit: '116.00000000',
   net_nav_per_unit: '112.80000000',
   gross_value: (Number(units) * 116).toFixed(2),
   net_value: net,
   performance_fee_share: (Number(units) * 3.2).toFixed(2),
   profit: (Number(net) - Number(contributed)).toFixed(2),
+  admin_fee_monthly: '500.00',
+  admin_fee_months: 2,
   admin_fee: '1000.00',
   final_profit: (Number(net) - Number(contributed) - 1000).toFixed(2),
   final_value: (Number(net) - 1000).toFixed(2),
@@ -222,10 +225,11 @@ describe('Reports', () => {
     await screen.findByRole('option', { name: /FY27 Growth Cycle/ });
     await user.selectOptions(screen.getByLabelText('Cycle'), CYCLE_ID);
     expect(await screen.findByRole('heading', { name: 'Investment statement' })).toBeInTheDocument();
-    // 1,000 units × NAV 112.80 = 1,12,800 → profit 12,800 → admin fee 1,000 → final 11,800.
-    expect(await screen.findByText('₹1,12,800.00')).toBeInTheDocument();
-    expect(screen.getByText('+₹12,800.00')).toBeInTheDocument();
-    expect(screen.getByText('+₹11,800.00')).toBeInTheDocument();
+    // 1,000 units × NAV 112.80 = 1,12,800 → profit 12,800. Verified 2 Nov, NAV 12 Nov: no completed
+    // month yet, so the monthly admin fee so far is ₹0 and the final profit is also 12,800.
+    expect(await screen.findAllByText('₹1,12,800.00')).toHaveLength(2);
+    expect(screen.getAllByText('+₹12,800.00')).toHaveLength(2);
+    expect(screen.getByText('Admin fee (0 × ₹1,000.00)')).toBeInTheDocument();
     expect(screen.getByText('₹112.80000000')).toBeInTheDocument();
     const statement = screen
       .getByRole('heading', { name: 'Investment statement' })

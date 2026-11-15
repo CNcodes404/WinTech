@@ -129,7 +129,7 @@ export function ClientOverviewPage() {
             label="Admin fee"
             term="adminFee"
             value={formatINR(cycle.admin_fee)}
-            meta="For this cycle, deducted from your profit"
+            meta={`${cycle.admin_fee_months} month(s) × ${formatINR(cycle.admin_fee_monthly)} per month`}
           />
           <StatCard
             label="Final profit"

@@ -31,7 +31,7 @@ export function describeCycleEntry(e: Pick<AuditEntry, 'action' | 'before_data' 
         ? `Cycle created (base NAV ${formatNav(String(after.base_nav ?? ''))})`
         : `Cycle created (base NAV ${formatNav(String(after.base_nav ?? ''))}, admin fee ${formatINR(String(after.admin_fee_amount))})`;
     case 'cycle.admin_fee_changed':
-      return `Admin fee changed from ${formatINR(String(before.admin_fee_amount ?? ''))} to ${formatINR(String(after.admin_fee_amount ?? ''))} per client`;
+      return `Admin fee changed from ${formatINR(String(before.admin_fee_amount ?? ''))} to ${formatINR(String(after.admin_fee_amount ?? ''))} per client per month`;
     case 'cycle.status_changed':
       return `Status changed from ${STATUS_LABEL[before.status as CycleStatus] ?? before.status} to ${
         STATUS_LABEL[after.status as CycleStatus] ?? after.status

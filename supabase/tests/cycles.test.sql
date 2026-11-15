@@ -267,9 +267,9 @@ begin
   if not v_raised then raise exception 'TEST FAILED: fee change while active accepted'; end if;
   v_checks := v_checks + 1;
 
-  -- Admin fee: default 1000, editable while active with a reason, audited.
-  if (select admin_fee_amount from public.cycle_overview where id = v_cycle) <> 1000 then
-    raise exception 'TEST FAILED: default admin fee is not 1000';
+  -- Admin fee: default ₹100 per month, editable while active with a reason, audited.
+  if (select admin_fee_amount from public.cycle_overview where id = v_cycle) <> 100 then
+    raise exception 'TEST FAILED: default monthly admin fee is not 100';
   end if;
   v_raised := false;
   begin
@@ -286,7 +286,7 @@ begin
   perform public.admin_set_admin_fee(v_cycle, 1500, 'Higher admin cost this year');
   select count(*) into v_n from public.audit_logs
    where entity_id = v_cycle and action = 'cycle.admin_fee_changed' and reason = 'Higher admin cost this year'
-     and after_data ->> 'admin_fee_amount' = '1500.00' and before_data ->> 'admin_fee_amount' = '1000.00';
+     and after_data ->> 'admin_fee_amount' = '1500.00' and before_data ->> 'admin_fee_amount' = '100.00';
   if v_n <> 1 then raise exception 'TEST FAILED: admin fee change not audited'; end if;
   v_checks := v_checks + 1;
 

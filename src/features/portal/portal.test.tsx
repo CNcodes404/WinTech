@@ -22,7 +22,8 @@ const CLIENT = makeProfile({
 const CYCLE_ID = '00000000-0000-4000-8000-00000000cc01';
 
 // Owner's example (Module 15): ₹1,00,000 at ₹100; market NAV 130 with a 50% performance fee → the client
-// sees NAV ₹115, profit ₹15,000, admin fee ₹1,000 and final profit ₹14,000. No performance fee anywhere.
+// sees NAV ₹115 and profit ₹15,000; admin fee ₹100/month × 2 completed months = ₹200 → final profit
+// ₹14,800. No performance fee anywhere.
 const cycle = (o: Partial<ClientCycle> = {}): ClientCycle => ({
   cycle_id: CYCLE_ID,
   cycle_name: 'FY27 Growth Cycle',
@@ -36,9 +37,12 @@ const cycle = (o: Partial<ClientCycle> = {}): ClientCycle => ({
   latest_nav: '115.00000000',
   current_value: '115000.00',
   profit: '15000.00',
-  admin_fee: '1000.00',
-  final_profit: '14000.00',
-  final_value: '114000.00',
+  admin_fee_monthly: '100.00',
+  admin_fee_months: 2,
+  admin_fee: '200.00',
+  final_profit: '14800.00',
+  final_value: '114800.00',
+  first_invested_at: '2026-09-02T10:00:00Z',
   ...o,
 });
 
@@ -138,7 +142,7 @@ describe('portal logic', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]!.value.toFixed(2)).toBe('115000.00');
     expect(rows[0]!.profit.toFixed(2)).toBe('15000.00');
-    expect(returnOn('14000.00', '100000.00')?.toFixed(6)).toBe('0.140000');
+    expect(returnOn('14800.00', '100000.00')?.toFixed(6)).toBe('0.148000');
     expect(returnOn('1', '0')).toBeNull();
     // Before the first NAV, holdings are valued at the starting NAV.
     expect(holdingRows(CONTRIBUTIONS, cycle({ latest_nav: null }))[0]!.profit.toFixed(2)).toBe('0.00');
@@ -177,9 +181,10 @@ describe('client portal pages', () => {
     ).toBeInTheDocument();
     expect(within(figures).getByText('₹1,15,000.00')).toBeInTheDocument();
     expect(within(figures).getByText('+₹15,000.00')).toBeInTheDocument();
-    expect(within(figures).getByText('₹1,000.00')).toBeInTheDocument();
-    expect(within(figures).getByText('+₹14,000.00')).toBeInTheDocument();
-    expect(within(figures).getByText('+14.00%')).toBeInTheDocument();
+    expect(within(figures).getByText('₹200.00')).toBeInTheDocument();
+    expect(within(figures).getByText('2 month(s) × ₹100.00 per month')).toBeInTheDocument();
+    expect(within(figures).getByText('+₹14,800.00')).toBeInTheDocument();
+    expect(within(figures).getByText('+14.80%')).toBeInTheDocument();
     // Portal disclaimer (in addition to the site-wide footer notice).
     expect(screen.getByText(/admin fee is shown for information/)).toBeInTheDocument();
     expect(supabaseMock.rpc).toHaveBeenCalledWith('client_nav_history', { p_cycle_id: CYCLE_ID });
@@ -202,8 +207,10 @@ describe('client portal pages', () => {
     renderRoute('/client/investment');
     expect(await screen.findByRole('cell', { name: '₹1,15,000.00' })).toBeInTheDocument();
     expect(screen.getByRole('cell', { name: '+₹15,000.00' })).toBeInTheDocument();
-    expect(screen.getByText(/so your final profit/)).toHaveTextContent('₹1,000.00');
-    expect(screen.getByText(/so your final profit/)).toHaveTextContent('+₹14,000.00');
+    const step = screen.getByText(/your final profit/);
+    expect(step).toHaveTextContent('₹100.00 per month. 2 full month(s) have passed');
+    expect(step).toHaveTextContent('admin fee so far is ₹200.00');
+    expect(step).toHaveTextContent('+₹14,800.00');
     expect(screen.getByRole('heading', { name: 'Awaiting verification' })).toBeInTheDocument();
     expectNoPerformanceFee();
   });
@@ -242,7 +249,7 @@ describe('client portal pages', () => {
       const text = await created[0]!.text();
       expect(text).toContain('Rahul (fictional)');
       expect(text).toContain('115000.00');
-      expect(text).toContain('14000.00');
+      expect(text).toContain('14800.00');
       expect(text).toContain('UTR-1');
       expect(text).toContain('not live market data');
       expect(text).not.toMatch(/performance|fee rate|gross/i);

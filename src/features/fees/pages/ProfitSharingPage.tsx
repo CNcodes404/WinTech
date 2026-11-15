@@ -50,7 +50,7 @@ export function ProfitSharingPage() {
     <>
       <PageHeader
         title="Profit Sharing"
-        description="Performance fee on each cycle's total profit (never shown to clients) and the flat admin fee per client (shown to clients). Indicative only."
+        description="Performance fee on each cycle's total profit (never shown to clients) and the monthly admin fee per client (shown to clients). Indicative only."
         badges={<DemoBadge />}
       />
 
@@ -134,7 +134,9 @@ export function ProfitSharingPage() {
                 <div>
                   <p className="text-sm text-muted">Admin fee (clients see it)</p>
                   <p className="num text-2xl font-semibold">{formatINR(cycle.admin_fee_amount)}</p>
-                  <p className="text-xs text-muted">per client for this cycle, even without profit</p>
+                  <p className="text-xs text-muted">
+                    per client per completed month since they first invested, even without profit
+                  </p>
                 </div>
               </CardContent>
               <FeeTermsTable cycle={cycle} canChange={feeRateEditable(cycle.status)} />
@@ -151,7 +153,10 @@ export function ProfitSharingPage() {
                     One NAV for every client; this is the NAV clients see.
                   </li>
                   <li>Each client's profit = units × NAV − money they invested.</li>
-                  <li>The admin fee is then deducted to give the client's final profit.</li>
+                  <li>
+                    The admin fee (monthly fee × completed months since the client first invested, up to the
+                    NAV date) is then deducted to give the client's final profit.
+                  </li>
                 </ol>
                 <p className="text-xs text-muted">
                   Clients never see the performance fee. With money added mid-cycle, a single NAV shares the
@@ -214,7 +219,7 @@ export function ProfitSharingPage() {
                   value={summary ? formatINR(summary.adminFees) : '—'}
                   meta={
                     summary
-                      ? `${summary.clients} client(s) × ${formatINR(cycle.admin_fee_amount)}`
+                      ? `${summary.clients} client(s) · ${formatINR(cycle.admin_fee_amount)} per month`
                       : undefined
                   }
                 />
@@ -259,8 +264,8 @@ export function ProfitSharingPage() {
                         {formatINR(crystallisation.data.admin_fee_total)}
                       </dd>
                       <dd className="text-xs text-muted">
-                        {crystallisation.data.clients_charged} client(s) ×{' '}
-                        {formatINR(crystallisation.data.admin_fee_per_client)}
+                        {crystallisation.data.clients_charged} client(s) ·{' '}
+                        {formatINR(crystallisation.data.admin_fee_per_client)} per month
                       </dd>
                     </div>
                     <div>
@@ -298,7 +303,7 @@ export function ProfitSharingPage() {
           open={crystalliseOpen}
           onOpenChange={setCrystalliseOpen}
           title="Record the final fees for this cycle?"
-          description="Uses the latest published NAV and the current admin fee. This is an informational record; it can be made once and cannot be changed."
+          description="Uses the latest published NAV and the current monthly admin fee. This is an informational record; it can be made once and cannot be changed."
           confirmLabel="Record final fees"
           requireReason
           reasonLabel="Note (recorded in the audit log)"

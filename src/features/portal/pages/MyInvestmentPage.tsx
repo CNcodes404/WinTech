@@ -147,8 +147,10 @@ export function MyInvestmentPage() {
                 your profit is <span className="num font-medium">{formatSignedINR(cycle.profit)}</span>.
               </li>
               <li>
-                The admin fee for this cycle is{' '}
-                <span className="num font-medium">{formatINR(cycle.admin_fee)}</span>, so your final profit is{' '}
+                The admin fee is <span className="num font-medium">{formatINR(cycle.admin_fee_monthly)}</span>{' '}
+                per month. {cycle.admin_fee_months} full month(s) have passed since you first invested
+                {cycle.latest_nav_date ? ' (up to the latest NAV date)' : ''}, so the admin fee so far is{' '}
+                <span className="num font-medium">{formatINR(cycle.admin_fee)}</span> and your final profit is{' '}
                 <span className="num font-semibold">{formatSignedINR(cycle.final_profit)}</span>.
               </li>
             </ol>

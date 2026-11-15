@@ -35,12 +35,15 @@ export interface ClientPosition {
   client_email: string;
   units: string;
   contributed: string;
+  first_invested_at: string | null;
   gross_nav_per_unit: string;
   net_nav_per_unit: string;
   gross_value: string;
   net_value: string;
   performance_fee_share: string;
   profit: string;
+  admin_fee_monthly: string;
+  admin_fee_months: number;
   admin_fee: string;
   final_profit: string;
   final_value: string;
@@ -65,12 +68,15 @@ const POSITION_COLUMNS = [
   'client_email',
   'units::text',
   'contributed::text',
+  'first_invested_at',
   'gross_nav_per_unit::text',
   'net_nav_per_unit::text',
   'gross_value::text',
   'net_value::text',
   'performance_fee_share::text',
   'profit::text',
+  'admin_fee_monthly::text',
+  'admin_fee_months',
   'admin_fee::text',
   'final_profit::text',
   'final_value::text',

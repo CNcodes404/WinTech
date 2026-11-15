@@ -5,7 +5,7 @@ import { Select } from '@/components/ui/Form';
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table';
 import { METHOD_LABEL } from '@/features/contributions/types';
 import { useCycles } from '@/features/cycles/queries';
-import { clientFigures } from '@/features/fees/logic';
+import { clientFigures, completedMonths } from '@/features/fees/logic';
 import { useNavSnapshots } from '@/features/nav/queries';
 import { clientNav } from '@/features/nav/types';
 import { downloadCsv, slug, toCsv } from '@/lib/csv';
@@ -44,11 +44,19 @@ export function ClientStatementReport() {
   const latest = snapshots.data?.find((s) => s.status === 'published');
   const verified = (register.data?.rows ?? []).filter((r) => r.status === 'verified');
   const nav = latest ? clientNav(latest) : (cycle?.base_nav ?? '0');
+  // Monthly admin fee: completed months from the client's first verification to the latest NAV date.
+  const firstVerified =
+    verified
+      .map((r) => r.verified_at)
+      .filter(Boolean)
+      .sort()[0] ?? null;
+  const months = completedMonths(firstVerified, latest?.nav_date ?? new Date());
+  const monthly = cycle?.admin_fee_amount ?? '0';
   const figures = clientFigures({
     units: verified.reduce((s, r) => s.plus(r.units_issued ?? '0'), new Decimal(0)),
     contributed: verified.reduce((s, r) => s.plus(r.amount), new Decimal(0)),
     nav,
-    adminFee: cycle?.admin_fee_amount ?? '0',
+    adminFee: new Decimal(monthly).times(months),
   });
 
   function download() {
@@ -178,7 +186,7 @@ export function ClientStatementReport() {
             ['Invested', formatINR(figures.contributed)],
             ['Current value', formatINR(figures.value)],
             ['Profit', formatSignedINR(figures.profit)],
-            ['Admin fee', formatINR(figures.adminFee)],
+            [`Admin fee (${months} × ${formatINR(monthly)})`, formatINR(figures.adminFee)],
             ['Final profit', formatSignedINR(figures.finalProfit)],
             ['Value after admin fee', formatINR(figures.finalValue)],
           ].map(([k, v]) => (

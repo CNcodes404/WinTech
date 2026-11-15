@@ -36,6 +36,44 @@ export function summariseAccruals(rows: LotAccrual[]): AccrualSummary {
   );
 }
 
+const IST_PARTS = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Asia/Kolkata',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hourCycle: 'h23',
+});
+
+function istParts(d: Date): number[] {
+  const p = Object.fromEntries(IST_PARTS.formatToParts(d).map((x) => [x.type, x.value]));
+  return ['year', 'month', 'day', 'hour', 'minute', 'second'].map((k) => Number(p[k]));
+}
+
+/**
+ * Completed calendar months from `from` to `to` in India time (never negative). Mirrors
+ * private.completed_months: joined 1 Jan, NAV 15 Mar → 2. Used for the monthly admin fee.
+ */
+export function completedMonths(from: string | Date | null, to: string | Date | null): number {
+  if (!from || !to) return 0;
+  const a = new Date(from);
+  const b = new Date(to);
+  if (!(b > a)) return 0;
+  const [y1, m1, ...rest1] = istParts(a) as [number, number, number, number, number, number];
+  const [y2, m2, ...rest2] = istParts(b) as [number, number, number, number, number, number];
+  let months = (y2 - y1) * 12 + (m2 - m1);
+  // Not yet a full month if the day/time in the end month is earlier than the start's.
+  for (let i = 0; i < rest1.length; i++) {
+    if (rest2[i]! !== rest1[i]!) {
+      if (rest2[i]! < rest1[i]!) months -= 1;
+      break;
+    }
+  }
+  return Math.max(0, months);
+}
+
 export interface ClientFigures {
   units: Decimal;
   contributed: Decimal;

@@ -12,7 +12,7 @@ import { adminFeeSchema, type AdminFeeValues } from '../schemas';
 import type { CycleOverview } from '../types';
 import { FormError } from './FormAlert';
 
-/** Edit the flat ₹ admin fee per client. Render only while open. */
+/** Edit the monthly ₹ admin fee per client. Render only while open. */
 export function AdminFeeDialog({ cycle, onClose }: { cycle: CycleOverview; onClose: () => void }) {
   const formId = useId();
   const { toast } = useToast();
@@ -31,7 +31,7 @@ export function AdminFeeDialog({ cycle, onClose }: { cycle: CycleOverview; onClo
     setFormError(null);
     try {
       await setFee.mutateAsync({ amount: v.amount, reason: v.reason });
-      toast({ title: 'Admin fee updated', description: `${formatINR(v.amount)} per client` });
+      toast({ title: 'Admin fee updated', description: `${formatINR(v.amount)} per client per month` });
       onClose();
     } catch (err) {
       setFormError(
@@ -47,7 +47,7 @@ export function AdminFeeDialog({ cycle, onClose }: { cycle: CycleOverview; onClo
       open
       onOpenChange={(next) => !next && !isSubmitting && onClose()}
       title="Change admin fee"
-      description={`Current fee: ${formatINR(cycle.admin_fee_amount)} per client for this cycle.`}
+      description={`Current fee: ${formatINR(cycle.admin_fee_amount)} per client per month.`}
       dismissible={!isSubmitting}
       footer={
         <>
@@ -63,9 +63,9 @@ export function AdminFeeDialog({ cycle, onClose }: { cycle: CycleOverview; onClo
       <form id={formId} onSubmit={onSubmit} noValidate className="space-y-4">
         <FormError message={formError} />
         <FormField
-          label="Admin fee (₹ per client)"
+          label="Admin fee (₹ per client per month)"
           required
-          hint="Applies to every client in this cycle straight away, including their current figures."
+          hint="Applies to every client in this cycle straight away, including months already passed."
           error={errors.amount?.message}
         >
           {(field) => <Input {...field} {...register('amount')} inputMode="decimal" className="num" />}

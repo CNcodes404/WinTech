@@ -47,6 +47,8 @@ export function FeeReport() {
         'Performance fee share (INR)',
         'Value (INR)',
         'Profit (INR)',
+        'Admin fee per month (INR)',
+        'Months charged',
         'Admin fee (INR)',
         'Final profit (INR)',
         'Cycle performance fee (INR)',
@@ -65,6 +67,8 @@ export function FeeReport() {
         p.performance_fee_share,
         p.net_value,
         p.profit,
+        p.admin_fee_monthly,
+        p.admin_fee_months,
         p.admin_fee,
         p.final_profit,
         selected.performance_fee_amount,
@@ -88,7 +92,7 @@ export function FeeReport() {
   return (
     <ReportCard
       title="Fee report"
-      description="Performance fee on the cycle's profit and admin fee per client, at a published NAV."
+      description="Performance fee on the cycle's profit and monthly admin fee per client, at a published NAV."
       state={state}
       emptyText="No published NAV with client positions for this cycle."
       onRetry={() => void positions.refetch()}

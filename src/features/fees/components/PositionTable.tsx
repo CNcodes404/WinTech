@@ -69,7 +69,12 @@ export function PositionTable({ snapshotId }: { snapshotId: string }) {
             <TD numeric className={tone(r.profit)}>
               {formatSignedINR(r.profit)}
             </TD>
-            <TD numeric>{formatINR(r.admin_fee)}</TD>
+            <TD numeric>
+              {formatINR(r.admin_fee)}
+              <span className="block text-xs text-muted">
+                {r.admin_fee_months} mo × {formatINR(r.admin_fee_monthly)}
+              </span>
+            </TD>
             <TD numeric className={cn('font-semibold', tone(r.final_profit))}>
               {formatSignedINR(r.final_profit)}
             </TD>

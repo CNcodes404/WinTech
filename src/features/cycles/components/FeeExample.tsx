@@ -23,8 +23,8 @@ export function FeeExample({ percent, adminFee }: { percent: string; adminFee?: 
       a profit of <span className="num font-medium text-ink">{formatINR(profit)}</span>
       {fee && !fee.isNegative() ? (
         <>
-          ; after the admin fee of {formatINR(fee)}, their final profit is{' '}
-          <span className="num font-medium text-ink">{formatINR(profit.minus(fee))}</span>
+          ; after 2 months of admin fee ({formatINR(fee)} × 2), their final profit is{' '}
+          <span className="num font-medium text-ink">{formatINR(profit.minus(fee.times(2)))}</span>
         </>
       ) : null}
       . No performance fee is taken when the cycle has no profit.

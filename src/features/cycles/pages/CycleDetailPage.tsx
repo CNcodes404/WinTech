@@ -173,7 +173,7 @@ export function CycleDetailPage() {
           <Card>
             <CardHeader
               title="Admin fee"
-              description="A fixed amount per client for this cycle, deducted even when there is no profit. Clients see it."
+              description="Charged per client for each completed month since they first invested, even without profit. Clients see it."
               actions={
                 cycle.status !== 'settled' && (
                   <Button size="sm" variant="secondary" onClick={() => setAdminFeeOpen(true)}>
@@ -185,7 +185,9 @@ export function CycleDetailPage() {
             />
             <CardContent>
               <p className="num text-2xl font-semibold">{formatINR(cycle.admin_fee_amount)}</p>
-              <p className="text-xs text-muted">per client · changes are recorded in the cycle history</p>
+              <p className="text-xs text-muted">
+                per client per month · changes are recorded in the cycle history
+              </p>
             </CardContent>
           </Card>
         </div>

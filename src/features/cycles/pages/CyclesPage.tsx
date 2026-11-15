@@ -19,7 +19,7 @@ function FeeCell({ c }: { c: CycleOverview }) {
     <div>
       <span className="num font-medium">{formatRateAsPercent(c.current_fee_rate)}</span>
       <span className="mt-0.5 block num text-xs text-muted">
-        + {formatINR(c.admin_fee_amount)} admin / client
+        + {formatINR(c.admin_fee_amount)} admin / client / month
       </span>
       {c.pending_fee_rate && c.pending_fee_effective_from && (
         <span className="mt-0.5 flex items-center gap-1 text-xs text-warning">
@@ -129,7 +129,7 @@ export function CyclesPage() {
                     </div>
                     <p className="mt-1 num text-sm text-muted">
                       {formatDate(c.start_date)} – {formatDate(c.end_date)} · NAV {formatNav(c.base_nav)} ·
-                      Fee {formatRateAsPercent(c.current_fee_rate)} + {formatINR(c.admin_fee_amount)}
+                      Fee {formatRateAsPercent(c.current_fee_rate)} + {formatINR(c.admin_fee_amount)}/month
                     </p>
                   </Link>
                 </li>

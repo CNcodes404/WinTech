@@ -56,7 +56,7 @@ export const GLOSSARY = {
   adminFee: {
     label: 'Admin fee',
     description:
-      'A fixed amount charged once per client per cycle. It is deducted from your value even when there is no profit.',
+      'A fixed amount for each completed month since you first invested in this cycle, counted up to the latest NAV date. It is deducted even when there is no profit.',
   },
   /** client-safe */
   profit: {

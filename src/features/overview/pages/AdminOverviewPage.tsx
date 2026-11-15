@@ -296,11 +296,11 @@ export function AdminOverviewPage() {
                 <StatCard
                   label="Fees"
                   term="performanceFee"
-                  value={`${formatRateAsPercent(cycle.current_fee_rate)} · ${formatINR(cycle.admin_fee_amount)}`}
+                  value={`${formatRateAsPercent(cycle.current_fee_rate)} · ${formatINR(cycle.admin_fee_amount)}/mo`}
                   meta={
                     cycle.pending_fee_rate
                       ? `Performance fee changes to ${formatRateAsPercent(cycle.pending_fee_rate)} on ${formatDate(cycle.pending_fee_effective_from)}`
-                      : 'Performance fee · admin fee per client'
+                      : 'Performance fee · admin fee per client per month'
                   }
                 />
               </section>

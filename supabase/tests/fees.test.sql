@@ -1,7 +1,8 @@
 -- =============================================================================
 -- Tests for the fund-level fee model (Module 15, method fund_level_v2)
 --   * one NAV for everyone: NAV = (assets − performance fee on total profit) / units
---   * flat admin fee per client per cycle, always deducted
+--   * monthly admin fee per client: monthly fee × completed months since the client's first
+--     investment, up to the NAV date (deducted even without profit)
 --   * money received on a day is issued at the latest NAV dated BEFORE that day
 --
 -- SAFE TO RUN AGAINST ANY DATABASE: one DO block that always ends by raising an
@@ -46,27 +47,36 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', v_admin, 'role', 'authenticated')::text, true);
   execute 'set local role authenticated';
 
-  -- 50% performance fee, default ₹1,000 admin fee.
-  v_cycle := public.admin_create_cycle('FTest Cycle', null, current_date - 30, current_date + 300, 100, 0.5);
+  -- 50% performance fee, default admin fee ₹100 per month.
+  v_cycle := public.admin_create_cycle('FTest Cycle', null, current_date - 90, current_date + 300, 100, 0.5);
   perform public.admin_set_cycle_status(v_cycle, 'open', 'Open for test');
-  if (select admin_fee_amount from public.investment_cycles where id = v_cycle) <> 1000 then
-    raise exception 'TEST FAILED: default admin fee';
+  if (select admin_fee_amount from public.investment_cycles where id = v_cycle) <> 100 then
+    raise exception 'TEST FAILED: default monthly admin fee';
   end if;
+  -- Completed months (India time): only full months count.
+  execute 'set local role postgres';
+  if private.completed_months('2027-01-01 10:00+05:30', '2027-03-15 15:30+05:30') <> 2
+     or private.completed_months('2027-01-20 10:00+05:30', '2027-03-15 15:30+05:30') <> 1
+     or private.completed_months('2027-01-31 10:00+05:30', '2027-02-28 15:30+05:30') <> 0
+     or private.completed_months('2027-03-15 10:00+05:30', '2027-01-01 10:00+05:30') <> 0 then
+    raise exception 'TEST FAILED: completed months';
+  end if;
+  execute 'set local role authenticated';
   v_checks := v_checks + 1;
 
-  -- ================================================================ 3 days ago: Client A ₹1,00,000 at ₹100 → 1,000 units
+  -- ================================================================ 2 months + 5 days ago: Client A ₹1,00,000 at ₹100 → 1,000 units
   execute 'set local role postgres';
   select id into v_terms from public.cycle_fee_terms where cycle_id = v_cycle and version = 1;
   insert into public.contributions
     (cycle_id, client_id, amount, received_at, method, reference_number, status, recorded_by,
      verified_by, verified_at, applicable_nav, units_issued, created_at)
-  values (v_cycle, v_a, 100000, now() - interval '3 days', 'bank_transfer', 'F-1', 'verified', v_admin,
-          v_admin, now() - interval '3 days', 100, 1000, now() - interval '3 days')
+  values (v_cycle, v_a, 100000, now() - interval '2 months 5 days', 'bank_transfer', 'F-1', 'verified', v_admin,
+          v_admin, now() - interval '2 months 5 days', 100, 1000, now() - interval '2 months 5 days')
   returning id into c_a;
   insert into public.client_unit_allocations
     (cycle_id, client_id, contribution_id, entry_type, units, amount, entry_nav, reference_hwm, fee_rate,
      fee_terms_id, created_by, created_at)
-  values (v_cycle, v_a, c_a, 'issue', 1000, 100000, 100, 100, 0.5, v_terms, v_admin, now() - interval '3 days');
+  values (v_cycle, v_a, c_a, 'issue', 1000, 100000, 100, 100, 0.5, v_terms, v_admin, now() - interval '2 months 5 days');
   execute 'set local role authenticated';
 
   -- ================================================================ 2 days ago: market NAV 130 → client NAV 115 (owner's example)
@@ -82,19 +92,21 @@ begin
   v_checks := v_checks + 1;
   perform public.admin_publish_nav(s1, 'Published close of day');
 
-  -- Admin position report: value 1,15,000, profit 15,000, admin fee 1,000, final profit 14,000.
+  -- Admin position report: value 1,15,000, profit 15,000; 2 completed months × ₹100 → final profit 14,800.
   select * into v_p from public.client_position_report where snapshot_id = s1 and client_id = v_a;
   if v_p.net_value <> 115000 or v_p.profit <> 15000 or v_p.performance_fee_share <> 15000
-     or v_p.admin_fee <> 1000 or v_p.final_profit <> 14000 or v_p.final_value <> 114000 then
+     or v_p.admin_fee_monthly <> 100 or v_p.admin_fee_months <> 2 or v_p.admin_fee <> 200
+     or v_p.final_profit <> 14800 or v_p.final_value <> 114800 then
     raise exception 'TEST FAILED: client A position: %', row_to_json(v_p);
   end if;
   v_checks := v_checks + 1;
 
-  -- What client A sees: NAV 115, profit 15,000, admin fee 1,000, final profit 14,000 — no performance fee.
+  -- What client A sees: NAV 115, profit 15,000, admin fee 2 × ₹100, final profit 14,800 — no performance fee.
   perform set_config('request.jwt.claims', json_build_object('sub', v_a, 'role', 'authenticated')::text, true);
   select * into v_p from public.client_my_cycles();
   if v_p.latest_nav <> '115.00000000' or v_p.current_value <> '115000.00' or v_p.profit <> '15000.00'
-     or v_p.admin_fee <> '1000.00' or v_p.final_profit <> '14000.00' or v_p.final_value <> '114000.00' then
+     or v_p.admin_fee_monthly <> '100.00' or v_p.admin_fee_months <> 2 or v_p.admin_fee <> '200.00'
+     or v_p.final_profit <> '14800.00' or v_p.final_value <> '114800.00' then
     raise exception 'TEST FAILED: client A portal figures: %', row_to_json(v_p);
   end if;
   perform set_config('request.jwt.claims', json_build_object('sub', v_admin, 'role', 'authenticated')::text, true);
@@ -176,7 +188,9 @@ begin
   end if;
   select * into v_p from public.client_position_report where snapshot_id = s2 and client_id = v_b;
   if v_p.contributed <> 130000 or v_p.net_value <> round(v_units * v_nav, 2)
-     or v_p.profit <> round(v_units * v_nav, 2) - 130000 or v_p.final_profit <> v_p.profit - 1000 then
+     or v_p.profit <> round(v_units * v_nav, 2) - 130000
+     -- B joined today: no completed month yet, so no admin fee.
+     or v_p.admin_fee_months <> 0 or v_p.final_profit <> v_p.profit then
     raise exception 'TEST FAILED: client B position: %', row_to_json(v_p);
   end if;
   v_checks := v_checks + 1;
@@ -192,7 +206,7 @@ begin
     raise exception 'TEST FAILED: with a loss there is no fee and NAV = gross NAV: %', row_to_json(v_s);
   end if;
   select * into v_p from public.client_position_report where snapshot_id = s3 and client_id = v_a;
-  if v_p.profit >= 0 or v_p.admin_fee <> 1000 or v_p.final_profit <> v_p.profit - 1000 then
+  if v_p.profit >= 0 or v_p.admin_fee <> 200 or v_p.final_profit <> v_p.profit - 200 then
     raise exception 'TEST FAILED: admin fee must be deducted even at a loss: %', row_to_json(v_p);
   end if;
   v_checks := v_checks + 1;
@@ -216,9 +230,9 @@ begin
   v_checks := v_checks + 1;
 
   -- ================================================================ admin fee edit + cycle close record
-  perform public.admin_set_admin_fee(v_cycle, 1200, 'Revised admin cost');
+  perform public.admin_set_admin_fee(v_cycle, 150, 'Revised admin cost');
   select admin_fee into v_num from public.client_position_report where snapshot_id = s3 and client_id = v_a;
-  if v_num <> 1200 then raise exception 'TEST FAILED: edited admin fee not applied (%)', v_num; end if;
+  if v_num <> 300 then raise exception 'TEST FAILED: edited monthly fee not applied (% for 2 months)', v_num; end if;
   v_checks := v_checks + 1;
 
   v_raised := false;
@@ -231,8 +245,9 @@ begin
   perform public.admin_set_cycle_status(v_cycle, 'closed', 'Cycle ended');
   perform public.admin_record_fee_crystallisation(v_cycle, 'Final fees recorded');
   select * into v_cr from public.fee_crystallisations where cycle_id = v_cycle;
-  if v_cr.total_fee_amount <> 0 or v_cr.admin_fee_per_client <> 1200 or v_cr.clients_charged <> 2
-     or v_cr.admin_fee_total <> 2400 or v_cr.snapshot_id <> s3 then
+  -- A: 2 months × ₹150; B: 0 months → total ₹300.
+  if v_cr.total_fee_amount <> 0 or v_cr.admin_fee_per_client <> 150 or v_cr.clients_charged <> 2
+     or v_cr.admin_fee_total <> 300 or v_cr.snapshot_id <> s3 then
     raise exception 'TEST FAILED: crystallisation: %', row_to_json(v_cr);
   end if;
   v_raised := false;

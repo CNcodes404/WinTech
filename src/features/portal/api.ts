@@ -26,9 +26,15 @@ export interface ClientCycle {
   /** units × latest NAV (or base NAV before the first NAV). */
   current_value: string;
   profit: string;
+  /** Admin fee per completed month. */
+  admin_fee_monthly: string;
+  /** Completed months since the client's first investment, up to the latest NAV date. */
+  admin_fee_months: number;
+  /** admin_fee_monthly × admin_fee_months. */
   admin_fee: string;
   final_profit: string;
   final_value: string;
+  first_invested_at: string | null;
 }
 
 export interface ClientContribution {

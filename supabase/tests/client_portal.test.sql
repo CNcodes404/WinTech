@@ -89,8 +89,10 @@ begin
   if v_n <> 1 then raise exception 'TEST FAILED: client A sees % cycles (expected 1)', v_n; end if;
   select * into v_row from public.client_my_cycles();
   if v_row.units <> '1000.00000000' or v_row.latest_nav <> '112.80000000' or v_row.net_contributed <> '100000.00'
-     or v_row.current_value <> '112800.00' or v_row.profit <> '12800.00' or v_row.admin_fee <> '1000.00'
-     or v_row.final_profit <> '11800.00' or v_row.final_value <> '111800.00' then
+     or v_row.current_value <> '112800.00' or v_row.profit <> '12800.00'
+     -- Invested today: no completed month yet → no admin fee so far (₹100/month by default).
+     or v_row.admin_fee_monthly <> '100.00' or v_row.admin_fee_months <> 0 or v_row.admin_fee <> '0.00'
+     or v_row.final_profit <> '12800.00' or v_row.final_value <> '112800.00' then
     raise exception 'TEST FAILED: client A cycle summary: %', row_to_json(v_row);
   end if;
   v_checks := v_checks + 2;
