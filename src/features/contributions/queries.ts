@@ -110,7 +110,8 @@ export function useRecordContribution() {
 export function useVerifyContribution(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (reason: string) => verifyContribution(id, reason),
+    mutationFn: ({ reason, verifiedAt }: { reason: string; verifiedAt?: string }) =>
+      verifyContribution(id, reason, verifiedAt),
     onSuccess: () => refresh(qc),
   });
 }

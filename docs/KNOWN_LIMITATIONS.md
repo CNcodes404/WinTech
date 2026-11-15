@@ -51,3 +51,6 @@ been approved by qualified professionals (see README).
   `supabase/scripts/remove_demo_data.sql` (owner-run, audited) was used to remove the demo financial data.
 - Single INR currency; India Standard Time display throughout.
 - No MFA, rate-limit tuning, backups/PITR configuration or monitoring beyond Supabase defaults.
+- **Verification date:** admins may back-date a verification (units join the pool at that time), but never
+  before the money was received, never in the future and never on or before the cycle's latest published NAV,
+  so published NAVs cannot change. The real time of the click is kept in the audit log.

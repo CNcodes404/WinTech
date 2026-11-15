@@ -221,6 +221,41 @@ describe('ContributionDetailPage', () => {
     expect(await screen.findByText('1,363.63636363 units issued.')).toBeInTheDocument();
   });
 
+  it('verifies with a chosen verification date (units join the pool then)', async () => {
+    mockRegister(row());
+    supabaseMock.rpc.mockImplementation(async (fn: string) => {
+      if (fn === 'admin_preview_verification')
+        return {
+          data: [{ applicable_nav: '100', units: '1500', fee_rate: '0.2', fee_version: 1, nav_date: null }],
+          error: null,
+        };
+      if (fn === 'admin_verify_contribution')
+        return { data: [{ applicable_nav: '100', units: '1500.00000000', fee_rate: '0.2' }], error: null };
+      return { data: null, error: null };
+    });
+    const { user } = renderRoute(`/admin/contributions/${CONTRIB_ID}`);
+    await user.click(await screen.findByRole('button', { name: 'Verify & issue units' }));
+    const dialog = await screen.findByRole('dialog', { name: /Verify contribution/ });
+    await within(dialog).findByText('1,500.00000000');
+    const date = within(dialog).getByLabelText(/Verified on/);
+    // Received 12 Nov 2026, 10:00 IST: an earlier date is refused before anything is sent.
+    await user.clear(date);
+    await user.type(date, '2026-11-11T10:00');
+    expect(within(dialog).getByText('Cannot be before the money was received.')).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Verify & issue units' })).toBeDisabled();
+    await user.clear(date);
+    await user.type(date, '2026-11-13T18:30');
+    await user.type(within(dialog).getByLabelText(/Verification note/), 'Cleared on 13 Nov');
+    await user.click(within(dialog).getByRole('button', { name: 'Verify & issue units' }));
+    await waitFor(() =>
+      expect(supabaseMock.rpc).toHaveBeenCalledWith('admin_verify_contribution', {
+        p_contribution_id: CONTRIB_ID,
+        p_reason: 'Cleared on 13 Nov',
+        p_verified_at: '2026-11-13T18:30:00+05:30',
+      }),
+    );
+  });
+
   it('shows a clear message when the server refuses (e.g. already verified)', async () => {
     mockRegister(row());
     supabaseMock.rpc.mockImplementation(async (fn: string) => {

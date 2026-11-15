@@ -1,7 +1,17 @@
+import { useState } from 'react';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { FormField, Input } from '@/components/ui/Form';
 import { LoadingRegion, Skeleton } from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/toast-context';
-import { formatDate, formatDateTime, formatINR, formatNav, formatUnits } from '@/lib/format';
+import {
+  dateTimeLocalISTToIso,
+  formatDate,
+  formatDateTime,
+  formatINR,
+  formatNav,
+  formatUnits,
+  isoDateTimeLocalInIST,
+} from '@/lib/format';
 import { useVerificationPreview, useVerifyContribution } from '../queries';
 import type { ContributionRow } from '../types';
 
@@ -9,6 +19,8 @@ import type { ContributionRow } from '../types';
  * Verification shows the SERVER's preview of exactly what will be issued (NAV, NAV date, units),
  * so the admin confirms the authoritative numbers, not a browser estimate. Render only while open.
  * Money received on a day uses the latest NAV published for an EARLIER day (normally the previous one).
+ * The admin may set when the money was verified; units join the pool at that time. The server
+ * refuses dates before receipt, in the future, or on/before the cycle's latest published NAV.
  */
 export function VerifyDialog({
   contribution,
@@ -20,6 +32,16 @@ export function VerifyDialog({
   const preview = useVerificationPreview(contribution.id, true);
   const verify = useVerifyContribution(contribution.id);
   const { toast } = useToast();
+  const now = isoDateTimeLocalInIST();
+  const received = isoDateTimeLocalInIST(new Date(contribution.received_at));
+  const [verifiedOn, setVerifiedOn] = useState(now);
+  const dateError = !verifiedOn
+    ? 'Choose when the money was verified.'
+    : verifiedOn < received
+      ? 'Cannot be before the money was received.'
+      : verifiedOn > now
+        ? 'Cannot be in the future.'
+        : undefined;
 
   return (
     <ConfirmDialog
@@ -30,9 +52,13 @@ export function VerifyDialog({
       confirmLabel="Verify & issue units"
       requireReason
       reasonLabel="Verification note (recorded in the audit log)"
-      confirmDisabled={!preview.isSuccess}
+      confirmDisabled={!preview.isSuccess || Boolean(dateError)}
       onConfirm={async (reason) => {
-        const r = await verify.mutateAsync(reason);
+        const r = await verify.mutateAsync({
+          reason,
+          // Unchanged default = "now" on the server clock.
+          verifiedAt: verifiedOn === now ? undefined : dateTimeLocalISTToIso(verifiedOn),
+        });
         toast({ title: 'Contribution verified', description: `${formatUnits(r.units)} units issued.` });
       }}
     >
@@ -68,6 +94,23 @@ export function VerifyDialog({
           </dd>
         </dl>
       )}
+      <FormField
+        label="Verified on (IST)"
+        required
+        hint="When the money was confirmed. Units join the pool at this time, so valuations dated after it include them. Must be after the latest published NAV."
+        error={dateError}
+      >
+        {(field) => (
+          <Input
+            {...field}
+            type="datetime-local"
+            value={verifiedOn}
+            min={received}
+            max={now}
+            onChange={(e) => setVerifiedOn(e.target.value)}
+          />
+        )}
+      </FormField>
     </ConfirmDialog>
   );
 }

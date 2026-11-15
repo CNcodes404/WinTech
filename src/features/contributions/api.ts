@@ -106,10 +106,13 @@ export async function previewVerification(id: string): Promise<VerificationPrevi
 export async function verifyContribution(
   id: string,
   reason: string,
+  /** ISO timestamp when the money was verified; units join the pool at this time. Omit for "now". */
+  verifiedAt?: string,
 ): Promise<{ units: string; applicable_nav: string }> {
   const { data, error } = await supabase.rpc('admin_verify_contribution', {
     p_contribution_id: id,
     p_reason: reason,
+    ...(verifiedAt ? { p_verified_at: verifiedAt } : {}),
   });
   if (error) throw toUserFacingDbError(error, 'The contribution could not be verified. Nothing was changed.');
   const row = (data as unknown as { units: string; applicable_nav: string }[] | null)?.[0];

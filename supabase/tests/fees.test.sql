@@ -118,7 +118,37 @@ begin
   c_b := public.admin_record_contribution(v_cycle, v_b, 130000, now() - interval '1 hour', 'upi', 'F-2', null);
   select nav_date into v_s.nav_date from public.admin_preview_verification(c_b);
   if v_s.nav_date <> v_t2 then raise exception 'TEST FAILED: preview should name the NAV date used'; end if;
-  perform public.admin_verify_contribution(c_b, 'Joined mid-cycle');
+  -- Verification date: not before receipt, not on/before the latest published NAV, not in the future.
+  v_raised := false;
+  begin
+    perform public.admin_verify_contribution(c_b, 'Before receipt', now() - interval '2 hours');
+  exception when invalid_parameter_value then v_raised := true;
+  end;
+  if not v_raised then raise exception 'TEST FAILED: verified before the money was received'; end if;
+  -- Old paperwork received before the published NAV: verifying it inside published history is refused.
+  c_a := public.admin_record_contribution(v_cycle, v_b, 5000, v_t2 - interval '1 hour', 'other', 'F-OLD', null);
+  v_raised := false;
+  begin
+    perform public.admin_verify_contribution(c_a, 'Inside published history', v_t2 - interval '30 minutes');
+  exception when invalid_parameter_value then
+    v_raised := sqlerrm like '%after the latest published NAV%';
+  end;
+  if not v_raised then raise exception 'TEST FAILED: verification dated before a published NAV accepted'; end if;
+  perform public.admin_reject_contribution(c_a, 'Test paperwork only');
+  v_raised := false;
+  begin
+    perform public.admin_verify_contribution(c_b, 'Future date', now() + interval '1 day');
+  exception when invalid_parameter_value then v_raised := true;
+  end;
+  if not v_raised then raise exception 'TEST FAILED: future verification date accepted'; end if;
+  v_checks := v_checks + 1;
+
+  perform public.admin_verify_contribution(c_b, 'Joined mid-cycle', now() - interval '30 minutes');
+  if (select verified_at from public.contributions where id = c_b) <> now() - interval '30 minutes'
+     or (select created_at from public.client_unit_allocations where contribution_id = c_b) <> now() - interval '30 minutes' then
+    raise exception 'TEST FAILED: chosen verification date not used for the units';
+  end if;
+  v_checks := v_checks + 1;
   select units_issued into v_units from public.contributions where id = c_b;
   if (select applicable_nav from public.contributions where id = c_b) <> 115 or v_units <> 1130.43478260 then
     raise exception 'TEST FAILED: B should get 1,130.43478260 units at 115 (got %)', v_units;
