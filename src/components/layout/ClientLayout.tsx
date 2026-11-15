@@ -1,3 +1,4 @@
+import { Globe } from 'lucide-react';
 import { Link, NavLink, Outlet } from 'react-router';
 import { CLIENT_NAV } from '@/app/navigation';
 import { DemoBadge } from '@/components/ui/DemoBadge';
@@ -51,6 +52,16 @@ export function ClientLayout() {
             </ul>
           </nav>
           <div className="ml-auto flex items-center gap-3">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-sm font-medium text-muted transition-colors hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
+            >
+              <Globe aria-hidden="true" className="size-4" />
+              <span>
+                <span className="sm:hidden">Website</span>
+                <span className="hidden sm:inline">Visit website</span>
+              </span>
+            </Link>
             <DemoBadge className="hidden sm:inline-flex" />
             <UserMenu user={shellUser.user} onSignOut={shellUser.onSignOut} profilePath={`${BASE}/profile`} />
           </div>

@@ -76,6 +76,20 @@ describe('ClientLayout', () => {
     );
   });
 
+  it('links to the public website from the top bar', async () => {
+    const { user, router } = renderRoute('/client/overview');
+    await screen.findByRole('heading', { level: 1, name: 'Overview' });
+    const link = screen.getByRole('link', { name: /Visit website/ });
+    expect(link).toHaveAttribute('href', '/');
+    await user.click(link);
+    expect(router.state.location.pathname).toBe('/');
+    // Back on the website, signed-in clients get a way back to their dashboard.
+    expect((await screen.findAllByRole('link', { name: /Go to dashboard/ }))[0]).toHaveAttribute(
+      'href',
+      '/client/overview',
+    );
+  });
+
   it('marks the active client tab', async () => {
     renderRoute('/client/statements');
     await screen.findByRole('heading', { level: 1, name: 'Statements' });
