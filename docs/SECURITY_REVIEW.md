@@ -14,7 +14,7 @@ dashboard settings for the project owner.
 
 | Check                                                | Result                                                                                 |
 | ---------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `npm run test:db` — 9 suites, rollback-only, live DB | **183 / 183 checks pass**                                                              |
+| `npm run test:db` — 9 suites, rollback-only, live DB | **192 / 192 checks pass**                                                              |
 | `supabase/scripts/security_posture.sql`              | Clean (see table below)                                                                |
 | Supabase security advisor                            | Only accepted findings (below)                                                         |
 | Live E2E as demo client (real Auth API)              | Own profile only; portal data correct; direct table read → 0 rows; admin RPC → **403** |
@@ -103,3 +103,12 @@ audited (`cycle.admin_fee_changed`). The security posture check is unchanged (cl
 Monthly admin fee (15 Nov 2026, `20261115030000_monthly_admin_fee.sql`): `private.completed_months` is
 executable by signed-in users because the `security_invoker` view `client_position_report` calls it. It is a
 pure date calculation that reads no data (accepted; the posture check now lists it next to `is_admin`).
+
+## Addendum — public website and enquiries (15 Nov 2026)
+
+`/` is now the public WINTECH website (`/app` keeps the old sign-in redirect). The only anonymous write
+path is `public.submit_enquiry` (SECURITY DEFINER, migration `20261115040000_public_enquiries.sql`):
+server-side validation, required consent, a honeypot field, and rate limits (3 per email per day, 60
+site-wide per hour). Visitors and clients cannot read `enquiries` (no grant / admin-only RLS); admins change
+status through the audited `admin_set_enquiry_status`. Enquiries have a delete guard and are cleared only by
+the admin erase-all reset. `enquiries.test.sql` covers all of this. The site keeps `noindex` until launch.

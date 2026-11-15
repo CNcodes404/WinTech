@@ -36,6 +36,10 @@ import { SettingsPage } from '@/features/settings/pages/SettingsPage';
 import { ValuationDetailPage } from '@/features/portfolio/pages/ValuationDetailPage';
 import { ValuationEditorPage } from '@/features/portfolio/pages/ValuationEditorPage';
 import { CyclesPage } from '@/features/cycles/pages/CyclesPage';
+import { EnquiriesPage } from '@/features/enquiries/EnquiriesPage';
+import { SiteLayout } from '@/features/site/components/SiteChrome';
+import { LandingPage } from '@/features/site/pages/LandingPage';
+import { PrivacyPage, TermsPage } from '@/features/site/pages/LegalPages';
 
 /** Admin sections that have a real screen; the rest render a placeholder until their module. */
 const ADMIN_PAGES: Partial<Record<string, ReactElement>> = {
@@ -48,6 +52,7 @@ const ADMIN_PAGES: Partial<Record<string, ReactElement>> = {
   'profit-sharing': <ProfitSharingPage />,
   reports: <ReportsPage />,
   settings: <SettingsPage />,
+  enquiries: <EnquiriesPage />,
 };
 
 /** Client portal sections. */
@@ -69,7 +74,17 @@ export const routes: RouteObject[] = [
     element: <RootLayout />,
     errorElement: <RouteErrorPage />,
     children: [
-      { index: true, element: <RootRedirect /> },
+      // Public website (anyone). Signed-in users see a "Go to dashboard" button in its header.
+      {
+        element: <SiteLayout />,
+        children: [
+          { index: true, element: <LandingPage /> },
+          { path: 'privacy', element: <PrivacyPage /> },
+          { path: 'terms', element: <TermsPage /> },
+        ],
+      },
+      // Old entry point for the app: sends people to sign-in or their role's home.
+      { path: 'app', element: <RootRedirect /> },
       {
         element: <AuthLayout />,
         children: [

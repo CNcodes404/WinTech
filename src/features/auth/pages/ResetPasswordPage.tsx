@@ -68,7 +68,7 @@ export function ResetPasswordPage() {
       await updatePassword(password);
       auth.clearPasswordRecovery();
       toast({ title: 'Password updated', description: 'Use your new password next time you sign in.' });
-      navigate(auth.profile ? homePathFor(auth.profile.role) : '/', { replace: true });
+      navigate(auth.profile ? homePathFor(auth.profile.role) : '/app', { replace: true });
     } catch (err) {
       setFormError(authErrorMessage(err));
     }

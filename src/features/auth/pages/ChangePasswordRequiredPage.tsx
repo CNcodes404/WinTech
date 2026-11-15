@@ -16,7 +16,7 @@ export function ChangePasswordRequiredPage() {
 
   if (auth.status === 'loading' || auth.profileLoading) return <PageSpinner />;
   if (auth.status === 'signedOut') return <Navigate to="/login" replace />;
-  if (!auth.profile) return <Navigate to="/" replace />;
+  if (!auth.profile) return <Navigate to="/app" replace />;
   if (!auth.profile.must_change_password) return <Navigate to={homePathFor(auth.profile.role)} replace />;
 
   const role = auth.profile.role;

@@ -25,6 +25,7 @@ const ENTITY_TYPES: [string, string][] = [
   ['contribution', 'Contributions'],
   ['valuation', 'Valuations'],
   ['nav_snapshot', 'NAV'],
+  ['enquiry', 'Enquiries'],
 ];
 
 const ACTIONS = [
@@ -53,6 +54,8 @@ const ACTIONS = [
   'nav.discarded',
   'maintenance.demo_data_removed',
   'maintenance.data_reset',
+  'cycle.admin_fee_changed',
+  'enquiry.status_changed',
 ];
 
 function Detail({ row }: { row: AuditRow }) {

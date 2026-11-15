@@ -46,6 +46,7 @@ begin
   v_snapc := public.admin_calculate_nav(v_valc, v_snap);
   perform public.admin_publish_nav(v_snapc, 'Publish correction');
 
+  perform public.submit_enquiry('RTest Visitor', 'rtest-visitor@example.test', null, null, 'general', 'Please call me back about the demo.', true, null);
   select count(*) into v_users from public.profiles;
   select count(*) into v_paudit from public.audit_logs where entity_type = 'profile';
 
@@ -103,6 +104,7 @@ begin
        + (select count(*) from public.portfolio_valuations) + (select count(*) from public.portfolio_valuation_items)
        + (select count(*) from public.nav_snapshots) + (select count(*) from public.lot_fee_accruals)
        + (select count(*) from public.fee_crystallisations)
+       + (select count(*) from public.enquiries)
     into v_n;
   if v_n <> 0 then raise exception 'TEST FAILED: % business rows remain after reset', v_n; end if;
   v_checks := v_checks + 1;

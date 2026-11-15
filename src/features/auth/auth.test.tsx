@@ -123,19 +123,19 @@ describe('LoginPage', () => {
 
 describe('root redirect', () => {
   it('sends signed-out visitors to /login', async () => {
-    const { router } = renderRoute('/');
+    const { router } = renderRoute('/app');
     await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
   });
 
   it('sends a signed-in client to their overview', async () => {
     mockSignedIn(CLIENT);
-    const { router } = renderRoute('/');
+    const { router } = renderRoute('/app');
     await waitFor(() => expect(router.state.location.pathname).toBe('/client/overview'));
   });
 
   it('shows an account notice for inactive profiles', async () => {
     mockSignedIn(makeProfile({ status: 'inactive' }));
-    renderRoute('/');
+    renderRoute('/app');
     expect(await screen.findByRole('heading', { name: 'Account not available' })).toBeInTheDocument();
   });
 });

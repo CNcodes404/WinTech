@@ -5,6 +5,7 @@ import {
   ChartLine,
   FileText,
   HandCoins,
+  Inbox,
   House,
   Landmark,
   LayoutDashboard,
@@ -94,6 +95,13 @@ export const ADMIN_NAV: readonly NavItem[] = [
     icon: FileText,
     description: 'Statements, registers and CSV exports.',
     module: 13,
+  },
+  {
+    path: 'enquiries',
+    title: 'Enquiries',
+    icon: Inbox,
+    description: 'Messages from the public website contact form.',
+    module: 16,
   },
   {
     path: 'settings',

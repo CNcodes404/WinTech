@@ -379,6 +379,51 @@ export type Database = {
           },
         ];
       };
+      enquiries: {
+        Row: {
+          admin_note: string | null;
+          city: string | null;
+          consent: boolean;
+          created_at: string;
+          email: string;
+          full_name: string;
+          id: string;
+          interest: string;
+          message: string;
+          phone: string | null;
+          status: Database['public']['Enums']['enquiry_status'];
+          updated_at: string;
+        };
+        Insert: {
+          admin_note?: string | null;
+          city?: string | null;
+          consent: boolean;
+          created_at?: string;
+          email: string;
+          full_name: string;
+          id?: string;
+          interest?: string;
+          message: string;
+          phone?: string | null;
+          status?: Database['public']['Enums']['enquiry_status'];
+          updated_at?: string;
+        };
+        Update: {
+          admin_note?: string | null;
+          city?: string | null;
+          consent?: boolean;
+          created_at?: string;
+          email?: string;
+          full_name?: string;
+          id?: string;
+          interest?: string;
+          message?: string;
+          phone?: string | null;
+          status?: Database['public']['Enums']['enquiry_status'];
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       fee_crystallisations: {
         Row: {
           admin_fee_per_client: number;
@@ -1421,6 +1466,14 @@ export type Database = {
         };
         Returns: undefined;
       };
+      admin_set_enquiry_status: {
+        Args: {
+          p_enquiry_id: string;
+          p_note?: string;
+          p_status: Database['public']['Enums']['enquiry_status'];
+        };
+        Returns: undefined;
+      };
       admin_set_user_role: {
         Args: {
           p_reason: string;
@@ -1521,6 +1574,19 @@ export type Database = {
         }[];
       };
       complete_password_change: { Args: never; Returns: undefined };
+      submit_enquiry: {
+        Args: {
+          p_city: string;
+          p_consent: boolean;
+          p_email: string;
+          p_full_name: string;
+          p_interest: string;
+          p_message: string;
+          p_phone: string;
+          p_website?: string;
+        };
+        Returns: undefined;
+      };
     };
     Enums: {
       allocation_entry_type: 'issue' | 'reversal';
@@ -1528,6 +1594,7 @@ export type Database = {
       contribution_method: 'upi' | 'bank_transfer' | 'cheque' | 'other';
       contribution_status: 'pending' | 'verified' | 'rejected' | 'reversed';
       cycle_status: 'draft' | 'open' | 'active' | 'closed' | 'settled';
+      enquiry_status: 'new' | 'contacted' | 'closed';
       nav_snapshot_status: 'draft' | 'published' | 'corrected' | 'discarded';
       profile_status: 'active' | 'inactive';
       valuation_status: 'draft' | 'approved' | 'superseded' | 'discarded';
@@ -1656,6 +1723,7 @@ export const Constants = {
       contribution_method: ['upi', 'bank_transfer', 'cheque', 'other'],
       contribution_status: ['pending', 'verified', 'rejected', 'reversed'],
       cycle_status: ['draft', 'open', 'active', 'closed', 'settled'],
+      enquiry_status: ['new', 'contacted', 'closed'],
       nav_snapshot_status: ['draft', 'published', 'corrected', 'discarded'],
       profile_status: ['active', 'inactive'],
       valuation_status: ['draft', 'approved', 'superseded', 'discarded'],

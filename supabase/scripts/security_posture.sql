@@ -2,7 +2,8 @@
 -- information_schema only lists grants visible to the querying role).
 -- Expected: every row "none" / "false" / "0", except:
 --   authenticated_column_updates      = profiles.full_name, profiles.phone (clients edit own contact; RLS)
---   authenticated_executable_private  = is_admin (needed by RLS policies)
+--   authenticated_executable_private  = is_admin (RLS policies), completed_months (pure date maths)
+--   anon_executable_functions         = submit_enquiry (public website form; validated, rate-limited)
 -- Run: npx supabase db query --remote --read-only -f supabase/scripts/security_posture.sql
 with tables as (
   select c.oid, c.relname

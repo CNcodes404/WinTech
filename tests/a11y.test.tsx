@@ -102,3 +102,17 @@ describe('accessibility (axe)', () => {
     await expectNoViolations();
   });
 });
+
+describe('accessibility: public website', () => {
+  it('home page', async () => {
+    renderRoute('/');
+    await screen.findByRole('heading', { level: 1 });
+    await expectNoViolations();
+  });
+
+  it('privacy page', async () => {
+    renderRoute('/privacy');
+    await screen.findByRole('heading', { level: 1, name: 'Privacy Policy' });
+    await expectNoViolations();
+  });
+});

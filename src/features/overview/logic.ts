@@ -27,6 +27,10 @@ export function describeActivity(e: ActivityEntry): string {
       return describeValuationEntry(e);
     case 'nav_snapshot':
       return describeNavEntry(e);
+    case 'enquiry': {
+      const after = (e.after_data ?? {}) as Record<string, unknown>;
+      return `Website enquiry marked ${String(after.status ?? 'updated')}`;
+    }
     default:
       return e.action;
   }
@@ -46,6 +50,8 @@ export function activityLink(e: ActivityEntry): string | null {
       return `/admin/portfolio/valuations/${e.entity_id}`;
     case 'nav_snapshot':
       return `/admin/nav/snapshots/${e.entity_id}`;
+    case 'enquiry':
+      return '/admin/enquiries';
     default:
       return null;
   }

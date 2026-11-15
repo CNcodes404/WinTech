@@ -17,6 +17,9 @@ daily NAV calculation and publishing (performance fee taken from the cycle's tot
 clients), per-client positions, dashboard, reports with CSV export, audit log, admin management, erase-all
 demo reset.
 
+**Public website** (`/`): company information (about, sectors, approach, fees, risk disclosure, FAQs) with
+an enquiry form; enquiries appear under Admin → Enquiries. Draft Privacy and Terms pages.
+
 **Client (read-only, own data only):** NAV per unit (after performance fee), current value, profit, admin
 fee and final profit; contributions valued at the latest NAV; activity; printable/CSV statements; profile and
 password. Clients never see the performance fee.

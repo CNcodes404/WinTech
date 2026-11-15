@@ -94,6 +94,54 @@
     'lnum' 1;
 }
 
+/* Gentle floating motion for decorative hero elements (disabled for reduced motion). */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@utility animate-float {
+  animation: float 6s ease-in-out infinite;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@utility animate-draw {
+  stroke-dasharray: 1000;
+  animation: draw 2.4s ease-out forwards;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    stroke-dasharray: none;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  @media (prefers-reduced-motion: reduce) {
+    scroll-behavior: auto;
+  }
+}
+
+/* In-page anchors land below the sticky site header. */
+[id] {
+  scroll-margin-top: 5rem;
+}
+
 /* Thin brand-gradient rule (e.g. under the top bar). */
 @utility brand-rule {
   background-image: var(--gradient-brand);
